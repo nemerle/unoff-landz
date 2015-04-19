@@ -34,6 +34,13 @@
 #include "server_protocol_functions.h"
 #include "characters.h"
 
+Attribute attribute[MAX_RACES];
+/**
+    \brief the visual range of character, depending on ingame timeof day
+    \sa broadcast_add_new_enhanced_actor_packet
+    \returns visual range in [unit]
+    TODO: fill in the distance units
+*/
 int get_char_visual_range(int connection){
 
     /** public function - see header */

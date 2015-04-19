@@ -29,6 +29,8 @@
 #include "chat.h"
 #include "global.h"
 #include "logging.h"
+#include "Common/ServerPackets.h"
+#include "Common/PacketToBuffer.h"
 
 #define DEBUG_BROADCAST 0
 

@@ -16,21 +16,26 @@
 	You should have received a copy of the GNU General Public License
 	along with unoff_server_4.  If not, see <http://www.gnu.org/licenses/>.
 *******************************************************************************************************************/
+#include "server_protocol_functions.h"
 
-#include <string.h> //support for memmove strlen
-#include <sys/socket.h> //needed for send function
-#include <stdio.h>
 
-#include "server_protocol.h"
 #include "character_inventory.h"
 #include "clients.h"
 #include "maps.h"
 #include "logging.h"
+#include "Common/ServerPackets.h"
 
+#include <string.h> //support for memmove strlen
+#include <sys/socket.h> //needed for send function
+#include <stdio.h>
+#include <stdint.h>
+#include <alloca.h>
+#include <cassert>
+#include <vector>
 #define DEBUG_SEND 0
 
 
-void send_packet(int connection, unsigned char *packet, int packet_length){
+void send_packet(int connection, const uint8_t *packet, int packet_length){
 
     /** public function - see header */
 
@@ -47,39 +52,20 @@ void send_packet(int connection, unsigned char *packet, int packet_length){
     send(connection, packet, packet_length, 0);
 }
 
+void send_packet(const client_node_type &client, const std::vector<uint8_t> &buf) {
+    send_packet(client.socket_fd,buf.data(),buf.size());
+}
 
-void send_new_minute(int connection, int minute){
-
-    /** public function - see header */
-
-    typedef struct {
-        unsigned char protocol;
-        unsigned char lsb;
-        unsigned char msb;
-        unsigned char minute_lsb;
-        unsigned char minute_msb;
-    }packet_data;
-
-    int packet_length=sizeof(packet_data);
-
-    union {
-        unsigned char out[packet_length];
-        packet_data in;
-    }packet;
-
-    packet.in.protocol=NEW_MINUTE;
-    packet.in.lsb=(packet_length-2) % 256;
-    packet.in.msb=(packet_length-2) / 256;
-    packet.in.minute_lsb=minute % 256;
-    packet.in.minute_msb=minute / 256;
+/** public function - see header */
+void send_new_minute(const client_node_type &client, int16_t minute){
 
     #if DEBUG_SEND==1
-    printf("NEW_MINUTE connection [%i] minute [%i]\n", connection, minute);
+    printf("NEW_MINUTE connection [%i] minute [%i]\n", client.id(), minute);
     #endif
 
-    log_event(EVENT_SESSION, "NEW_MINUTE connection [%i] minute [%i]", connection, minute);
+    log_event(EVENT_SESSION, "NEW_MINUTE connection [%i] minute [%i]", client.id(), minute);
 
-    send_packet(connection, packet.out, packet_length);
+    send_packet(client, NewMinute(minute));
 }
 
 
