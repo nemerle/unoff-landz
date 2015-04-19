@@ -35,7 +35,7 @@ int load_db_game_data(){
     char sql[MAX_SQL_LEN]="";
     snprintf(sql, MAX_SQL_LEN, "SELECT * FROM GAME_DATA_TABLE");
 
-    rc=sqlite3_prepare_v2(db, sql, -1, &stmt, NULL);
+    rc=sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr);
     if(rc!=SQLITE_OK){
 
         log_sqlite_error("sqlite3_prepare_v2 failed", __func__, __FILE__, __LINE__, rc, sql);

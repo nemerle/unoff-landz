@@ -31,7 +31,10 @@
 #include "db/database_functions.h"
 #include "idle_buffer.h"
 
-int is_player_in_chan(int connection, int chan){
+struct channel_node_type channel[MAX_CHANNELS];
+
+
+int is_player_in_chan(const client_node_type &client, int chan){
 
     /** public function - see header */
 
@@ -39,45 +42,44 @@ int is_player_in_chan(int connection, int chan){
 
     for(i=0; i<MAX_CHAN_SLOTS; i++){
 
-        if(clients.client[connection].chan[i]==chan) return i;
+        if(client.chan[i]==chan) return i;
     }
 
     return NOT_FOUND;
 }
 
 
-void list_characters_in_chan(int connection, int chan){
+void list_characters_in_chan(client_node_type &src_client, int chan){
 
     /** public function - see header */
 
     char text_out[1024]="";
 
     sprintf(text_out, "%cListing for channel [%i]: %s", c_blue1+127, chan, channel[chan].channel_name);
-    send_raw_text(connection, CHAT_SERVER, text_out);
+    send_raw_text(src_client, CHAT_SERVER, text_out);
 
     sprintf(text_out, "%cDescription: %s", c_blue1+127, channel[chan].description);
-    send_raw_text(connection, CHAT_SERVER, text_out);
+    send_raw_text(src_client, CHAT_SERVER, text_out);
 
     sprintf(text_out, "%cCharacters in channel...", c_blue1+127);
-    send_raw_text(connection, CHAT_SERVER, text_out);
+    send_raw_text(src_client, CHAT_SERVER, text_out);
 
-    int i=0;
+    for(const auto &v : clients) {
+        const client_node_type &client(*v.second);
 
-    for(i=0; i<MAX_CLIENTS; i++){
+        if(src_client.client_status==client_node_type::LOGGED_IN){
 
-        if(clients.client[i].client_status==client_node_type::LOGGED_IN){
+            if(is_player_in_chan(client, chan)!=NOT_FOUND){
 
-            if(is_player_in_chan(i, chan)!=NOT_FOUND){
-
-                sprintf(text_out, "%c%s ", c_blue1+127, clients.client[i].char_name);
-                send_raw_text(connection, CHAT_SERVER, text_out);
+                sprintf(text_out, "%c%s ", c_blue1+127, client.char_name.c_str());
+                send_raw_text(src_client, CHAT_SERVER, text_out);
             }
         }
     }
 }
 
 
-int join_channel(int connection, int chan){
+int join_channel(client_node_type &src_client, int chan){
 
     /** public function - see header */
 
@@ -87,7 +89,7 @@ int join_channel(int connection, int chan){
     if(chan<0 || chan>=MAX_CHANNELS){
 
         sprintf(text_out, "%cyou tried to join an invalid channel", c_red3+127);
-        send_raw_text(connection, CHAT_SERVER, text_out);
+        send_raw_text(src_client, CHAT_SERVER, text_out);
 
         return CHANNEL_NOT_JOINED;
     }
@@ -96,7 +98,7 @@ int join_channel(int connection, int chan){
     else if(channel[chan].chan_type==channel_node_type::CHAN_SYSTEM){
 
         sprintf(text_out, "%cchannel is reserved for system use", c_red3+127);
-        send_raw_text(connection, CHAT_SERVER, text_out);
+        send_raw_text(src_client, CHAT_SERVER, text_out);
 
         return CHANNEL_NOT_JOINED;
     }
@@ -105,7 +107,7 @@ int join_channel(int connection, int chan){
     else if(channel[chan].chan_type==channel_node_type::CHAN_VACANT){
 
         sprintf(text_out, "%cThat channel is not open", c_red3+127);
-        send_raw_text(connection, CHAT_SERVER, text_out);
+        send_raw_text(src_client, CHAT_SERVER, text_out);
 
         return CHANNEL_NOT_JOINED;
     }
@@ -114,58 +116,56 @@ int join_channel(int connection, int chan){
     else if(channel[chan].chan_type==channel_node_type::CHAN_GUILD){
 
         sprintf(text_out, "%cThat channel is for a guild", c_red3+127);
-        send_raw_text(connection, CHAT_SERVER, text_out);
+        send_raw_text(src_client, CHAT_SERVER, text_out);
 
         return CHANNEL_NOT_JOINED;
     }
 
     //check if player is already in chan
-    if(is_player_in_chan(connection, chan)!=NOT_FOUND){
+    if(is_player_in_chan(src_client, chan)!=NOT_FOUND){
 
         sprintf(text_out, "%cYou have already joined that chan", c_red3+127);
-        send_raw_text(connection, CHAT_SERVER, text_out);
+        send_raw_text(src_client, CHAT_SERVER, text_out);
 
         return CHANNEL_NOT_JOINED;
     }
 
     //check if client has a free chan slot
-    int i=0;
-
-    for(i=0; i<MAX_CHAN_SLOTS; i++){
+    for(int i=0; i<MAX_CHAN_SLOTS; i++){
 
         //found free slot
-        if(clients.client[connection].chan[i]==0) {
+        if(src_client.chan[i]==0) {
 
-            sprintf(text_out, "%c%s has joined channel %s", c_yellow2+127, clients.client[connection].char_name, channel[chan].channel_name);
-            broadcast_channel_event(chan, connection, text_out);
+            sprintf(text_out, "%c%s has joined channel %s", c_yellow2+127, src_client.char_name.c_str(), channel[chan].channel_name);
+            broadcast_channel_event(chan, src_client, text_out);
 
-            clients.client[connection].chan[i]=chan;
+            src_client.chan[i]=chan;
 
             char sql[MAX_SQL_LEN]="";
-            snprintf(sql, MAX_SQL_LEN, "UPDATE CHARACTER_TABLE SET CHAN_%i=%i WHERE CHAR_ID=%i;", i, chan, clients.client[connection].character_id);
-            db_push_buffer(sql, 0, IDLE_BUFFER_PROCESS_SQL, NULL);
+            snprintf(sql, MAX_SQL_LEN, "UPDATE CHARACTER_TABLE SET CHAN_%i=%i WHERE CHAR_ID=%i;", i, chan, src_client.character_id);
+            db_push_buffer(sql);
 
-            clients.client[connection].active_chan=i+31;
-            send_get_active_channels(connection);
+            src_client.active_chan=i+31;
+            send_get_active_channels(src_client);
 
-            snprintf(sql, MAX_SQL_LEN, "UPDATE CHARACTER_TABLE SET ACTIVE_CHAN=%i WHERE CHAR_ID=%i;", clients.client[connection].active_chan, clients.client[connection].character_id);
-            db_push_buffer(sql, 0, IDLE_BUFFER_PROCESS_SQL, NULL);
+            snprintf(sql, MAX_SQL_LEN, "UPDATE CHARACTER_TABLE SET ACTIVE_CHAN=%i WHERE CHAR_ID=%i;", src_client.active_chan, src_client.character_id);
+            db_push_buffer(sql);
 
             //echo back to player which channel was just joined and its description etc
             sprintf(text_out, "%cYou joined channel %s", c_green3+127, channel[chan].channel_name);
-            send_raw_text(connection, CHAT_SERVER, text_out);
+            send_raw_text(src_client, CHAT_SERVER, text_out);
 
             sprintf(text_out, "%cDescription : %s", c_green2+127, channel[chan].description);
-            send_raw_text(connection, CHAT_SERVER, text_out);
+            send_raw_text(src_client, CHAT_SERVER, text_out);
 
             sprintf(text_out, "%cIn channel :", c_green1+127);
-            send_raw_text(connection, CHAT_SERVER, text_out);
+            send_raw_text(src_client, CHAT_SERVER, text_out);
 
-            list_characters_in_chan(connection, chan);
+            list_characters_in_chan(src_client, chan);
 
             //tell other in chan that player has joined
-            sprintf(text_out, "%c%s has joined channel %s", c_yellow2+127, clients.client[connection].char_name, channel[chan].channel_name);
-            broadcast_channel_event(chan, connection, text_out);
+            sprintf(text_out, "%c%s has joined channel %s", c_yellow2+127, src_client.char_name.c_str(), channel[chan].channel_name);
+            broadcast_channel_event(chan, src_client, text_out);
 
             return CHANNEL_JOINED;
         }
@@ -173,87 +173,84 @@ int join_channel(int connection, int chan){
 
     //free chan slot not found
     sprintf(text_out, "%cyou have no free channel slots left", c_red3+127);
-    send_raw_text(connection, CHAT_SERVER, text_out);
+    send_raw_text(src_client, CHAT_SERVER, text_out);
 
     return CHANNEL_NOT_JOINED;
 }
 
 
-int leave_channel(int connection, int chan){
+int leave_channel(client_node_type &client, int chan){
 
     /** public function - see header */
 
     char text_out[80]="";
     char sql[MAX_SQL_LEN]="";
 
-    int slot=is_player_in_chan(connection, chan);
+    int slot=is_player_in_chan(client, chan);
 
     if(slot==NOT_FOUND){
 
             sprintf(text_out, "%cyou are not in this channel", c_red3+127);
-            send_raw_text(connection, CHAT_SERVER, text_out);
+            send_raw_text(client, CHAT_SERVER, text_out);
 
             return CHANNEL_NOT_LEFT;
     }
 
     //echo back to player which channel was just left
-    sprintf(text_out, "%c%s has left channel %s", c_yellow2+127, clients.client[connection].char_name, channel[chan].channel_name);
-    broadcast_channel_event(chan, connection, text_out);
+    sprintf(text_out, "%c%s has left channel %s", c_yellow2+127, client.char_name.c_str(), channel[chan].channel_name);
+    broadcast_channel_event(chan, client, text_out);
 
     //null the channel slot
-    clients.client[connection].chan[slot]=0;
+    client.chan[slot]=0;
 
-    snprintf(sql, MAX_SQL_LEN,"UPDATE CHARACTER_TABLE SET CHAN_%i=%i WHERE CHAR_ID=%i;", slot, chan, clients.client[connection].character_id);
-    db_push_buffer(sql, 0, IDLE_BUFFER_PROCESS_SQL, NULL);
+    snprintf(sql, MAX_SQL_LEN,"UPDATE CHARACTER_TABLE SET CHAN_%i=%i WHERE CHAR_ID=%i;", slot, chan, client.character_id);
+    db_push_buffer(sql);
 
     // need to echo back to player which channel was just joined and its description etc
     sprintf(text_out, "%cyou left channel %s", c_green3+127, channel[chan].channel_name);
-    send_raw_text(connection, CHAT_SERVER, text_out);
+    send_raw_text(client, CHAT_SERVER, text_out);
 
     //tell others in chan that player has left
-    sprintf(text_out, "%c%s has left channel %s", c_yellow2+127, clients.client[connection].char_name, channel[chan].channel_name);
-    broadcast_channel_event(chan, connection, text_out);
+    sprintf(text_out, "%c%s has left channel %s", c_yellow2+127, client.char_name.c_str(), channel[chan].channel_name);
+    broadcast_channel_event(chan, client, text_out);
 
     //set active channel to next used channel slot or 0
-    clients.client[connection].active_chan=0;
+    client.active_chan=0;
 
-    int i=0;
-    for(i=0; i<MAX_CHAN_SLOTS; i++){
-
-        if(clients.client[connection].chan[i]>0){
-
-            clients.client[connection].active_chan=i+31;
+    for(int chan : client.chan) {
+        if(chan>0) {
+            client.active_chan=chan+31;
             break;
         }
     }
 
-    send_get_active_channels(connection);
+    send_get_active_channels(client);
 
-    sprintf(sql, "UPDATE CHARACTER_TABLE SET ACTIVE_CHAN=%i WHERE CHAR_ID=%i;", clients.client[connection].active_chan, clients.client[connection].character_id);
-    db_push_buffer(sql, 0, IDLE_BUFFER_PROCESS_SQL, NULL);
+    sprintf(sql, "UPDATE CHARACTER_TABLE SET ACTIVE_CHAN=%i WHERE CHAR_ID=%i;", client.active_chan, client.character_id);
+    db_push_buffer(sql);
 
-    if(clients.client[connection].active_chan==0){
+    if(client.active_chan==0){
 
         sprintf(text_out, "%cyou have no channels", c_red3+127);
-        send_raw_text(connection, CHAT_SERVER, text_out);
+        send_raw_text(client, CHAT_SERVER, text_out);
     }
 
     return CHANNEL_LEFT;
 }
 
 
-void send_pm(int connection, char *target_name, char *message) {
+void send_pm(client_node_type &client, const char *target_name, const char *message) {
 
     char text_out[1024]="";
 
     // echo message back to sender
     sprintf(text_out, "%c[PM to %s: %s]", c_orange1+127, target_name, message);
-    send_raw_text(connection, CHAT_PERSONAL, text_out);
+    send_raw_text(client, CHAT_PERSONAL, text_out);
 
     //check if message recipient is in game
-    int target_connection=char_in_game(target_name);
+    client_node_type *target_connection=char_in_game(target_name);
 
-    if(target_connection==NOT_FOUND){
+    if(target_connection==nullptr){
 
          log_text(EVENT_CHAT, "target character not logged in");
 
@@ -261,7 +258,7 @@ void send_pm(int connection, char *target_name, char *message) {
     }
 
     sprintf(text_out, "%c[PM from %s: %s]", c_orange1+127, target_name, message);
-    send_raw_text(target_connection, CHAT_PERSONAL, text_out);
+    send_raw_text(*target_connection, CHAT_PERSONAL, text_out);
 
     return;
 }

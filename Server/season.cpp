@@ -1,20 +1,20 @@
 /******************************************************************************************************************
-	Copyright 2014 UnoffLandz
+    Copyright 2014 UnoffLandz
 
-	This file is part of unoff_server_4.
+    This file is part of unoff_server_4.
 
-	unoff_server_4 is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation, either version 3 of the License, or
-	(at your option) any later version.
+    unoff_server_4 is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
 
-	unoff_server_4 is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
+    unoff_server_4 is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
 
-	You should have received a copy of the GNU General Public License
-	along with unoff_server_4.  If not, see <http://www.gnu.org/licenses/>.
+    You should have received a copy of the GNU General Public License
+    along with unoff_server_4.  If not, see <http://www.gnu.org/licenses/>.
 *******************************************************************************************************************/
 
 #include <string.h> //support for strcpy
@@ -26,6 +26,8 @@
 #include "server_start_stop.h"
 #include "server_messaging.h"
 #include "server_protocol_functions.h"
+
+season_type season[MAX_SEASONS];
 
 void get_game_season(int game_days, char *season_name, char *season_description){
 
@@ -48,7 +50,7 @@ void get_game_season(int game_days, char *season_name, char *season_description)
     stop_server();
 }
 
-void send_verbose_date(int connection, int game_days){
+void send_verbose_date(client_node_type &client, int game_days){
 
     char text_out[160]="";
 
@@ -59,6 +61,6 @@ void send_verbose_date(int connection, int game_days){
     char season_description[160]="";
     get_game_season(year_days, season_name, season_description);
 
-    sprintf(text_out, "The day is %02i in the season of %s, year %i",  game_days, season_name, game_year);
-    send_raw_text(connection, CHAT_SERVER, text_out);
+    snprintf(text_out,160, "The day is %02i in the season of %s, year %i",  game_days, season_name, game_year);
+    send_raw_text(client, CHAT_SERVER, text_out);
 }

@@ -1,20 +1,20 @@
 /******************************************************************************************************************
-	Copyright 2014 UnoffLandz
+    Copyright 2014 UnoffLandz
 
-	This file is part of unoff_server_4.
+    This file is part of unoff_server_4.
 
-	unoff_server_4 is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation, either version 3 of the License, or
-	(at your option) any later version.
+    unoff_server_4 is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
 
-	unoff_server_4 is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
+    unoff_server_4 is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
 
-	You should have received a copy of the GNU General Public License
-	along with unoff_server_4.  If not, see <http://www.gnu.org/licenses/>.
+    You should have received a copy of the GNU General Public License
+    along with unoff_server_4.  If not, see <http://www.gnu.org/licenses/>.
 *******************************************************************************************************************/
 
 #include <stdio.h> //support for sprintf function
@@ -22,7 +22,6 @@
 
 #include "global.h"
 #include "pathfinding.h"
-#include "client_protocol.h"
 #include "maps.h"
 #include "logging.h"
 #include "movement.h"
@@ -207,7 +206,7 @@ int add_adjacent_tiles_to_explore_stack(int target_tile, int dest_tile, int map_
     return ADD_TILE_COMPLETE;
 }
 
-int explore_path(int connection, int destination_tile, int *path_stack_count, int path_stack[][3]){
+int explore_path(client_node_type &client, int destination_tile, int *path_stack_count, int path_stack[][3]) {
 
     /** RESULT  : fills array path_stack with a list of tiles explored between start and destination
 
@@ -227,8 +226,8 @@ int explore_path(int connection, int destination_tile, int *path_stack_count, in
     int heuristic_value=0;
     int found=FALSE;
     char text_out[1024]="";
-    int start_tile=clients.client[connection].map_tile;
-    int map_id=clients.client[connection].map_id;
+    int start_tile=client.map_tile;
+    int map_id=client.map_id;
 
     //filter out paths where start = destination
     if(start_tile==destination_tile) return NOT_FOUND;
@@ -271,7 +270,7 @@ int explore_path(int connection, int destination_tile, int *path_stack_count, in
         if(found==FALSE) {
 
             sprintf(text_out, "%cthat destination is unreachable", c_red1+127);
-            send_raw_text(connection, CHAT_PERSONAL, text_out);
+            send_raw_text(client, CHAT_PERSONAL, text_out);
             log_event(EVENT_MOVE_ERROR, "destination unreachable - no explorable tiles left in stack in function %s: module %s: line %i", __func__, __FILE__, __LINE__);
 
             return NOT_FOUND;
@@ -299,7 +298,7 @@ int explore_path(int connection, int destination_tile, int *path_stack_count, in
     return FOUND;
 }
 
-int get_astar_path(int connection, int start_tile, int destination_tile){
+int get_astar_path(client_node_type &client, int start_tile, int destination_tile){
 
     /** public function - see header */
 
@@ -310,19 +309,19 @@ int get_astar_path(int connection, int start_tile, int destination_tile){
 
     int lowest_value=0;
     int next_tile=0;
-    int map_id=clients.client[connection].map_id;
+    int map_id=client.map_id;
     char text_out[1024]="";
     int found=FALSE;
 
-    if(explore_path(connection, destination_tile, &path_stack_count, path_stack)==NOT_FOUND) return NOT_FOUND;
+    if(explore_path(client, destination_tile, &path_stack_count, path_stack)==NOT_FOUND) return NOT_FOUND;
 
     //start path at destination tile
     next_tile=destination_tile;
     path_stack[0][STATUS]=EXPLORED;
 
     //load destination tile to the path
-    clients.client[connection].path_count=1;
-    clients.client[connection].path[ clients.client[connection].path_count-1]=next_tile;
+    client.path.clear();
+    client.path.push_back(next_tile);
 
     //loop through explored tiles finding the best adjacent moves from destination to start
     do{
@@ -350,24 +349,22 @@ int get_astar_path(int connection, int start_tile, int destination_tile){
         if(found==FALSE) {
 
             sprintf(text_out, "%cthat destination is unreachable", c_red1+127);
-            send_raw_text(connection, CHAT_PERSONAL, text_out);
+            send_raw_text(client, CHAT_PERSONAL, text_out);
             return NOT_FOUND;
         }
 
         next_tile=path_stack[j][TILE];
         path_stack[j][STATUS]=EXPLORED;
 
-        clients.client[connection].path_count++;
-
-        if(clients.client[connection].path_count>PATH_MAX-1) {
+        client.path.push_back(next_tile);
+        if(client.path.size()>PATH_MAX-1) {
 
             log_event(EVENT_MOVE_ERROR, "client path array exceeded in function %s: module %s: line %i", __func__, __FILE__, __LINE__);
             stop_server();
         }
 
-        clients.client[connection].path[ clients.client[connection].path_count-1]=next_tile;
 
-    }while(clients.client[connection].path[clients.client[connection].path_count-1]!=start_tile);
+    }while(client.path.back()!=start_tile);
 
     return FOUND;
 }

@@ -36,7 +36,7 @@ int load_db_char_races(){
     char sql[MAX_SQL_LEN]="";
     snprintf(sql, MAX_SQL_LEN, "SELECT * FROM RACE_TABLE");
 
-    rc=sqlite3_prepare_v2(db, sql, -1, &stmt, NULL);
+    rc=sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr);
     if(rc!=SQLITE_OK){
 
         log_sqlite_error("sqlite3_prepare_v2 failed", __func__, __FILE__, __LINE__, rc, sql);
@@ -79,7 +79,7 @@ int load_db_char_races(){
 }
 
 
-void add_db_race(int race_id, char *race_name, char *race_description){
+void add_db_race(int race_id, const char *race_name, const char *race_description){
 
     char sql[MAX_SQL_LEN]="";
     snprintf(sql, MAX_SQL_LEN,

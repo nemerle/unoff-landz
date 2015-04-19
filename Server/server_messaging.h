@@ -1,20 +1,20 @@
 /******************************************************************************************************************
-	Copyright 2014 UnoffLandz
+    Copyright 2014 UnoffLandz
 
-	This file is part of unoff_server_4.
+    This file is part of unoff_server_4.
 
-	unoff_server_4 is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation, either version 3 of the License, or
-	(at your option) any later version.
+    unoff_server_4 is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
 
-	unoff_server_4 is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
+    unoff_server_4 is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
 
-	You should have received a copy of the GNU General Public License
-	along with unoff_server_4.  If not, see <http://www.gnu.org/licenses/>.
+    You should have received a copy of the GNU General Public License
+    along with unoff_server_4.  If not, see <http://www.gnu.org/licenses/>.
 *******************************************************************************************************************/
 
 #ifndef SERVER_MESSAGING_H_INCLUDED
@@ -22,7 +22,7 @@
 
 #define MOTD_FILE "motd.msg"
 #define SERVER_WELCOME_MSG "\nWELCOME TO THE UNOFF SERVER\n--------------------------------------------------------------------------------------------"
-
+struct client_node_type;
 //#define CHAT_CHANNEL_START 5
 
 enum { // channel types
@@ -45,7 +45,7 @@ enum { // channel types
 
     NOTES   :
 **/
-void send_motd_header(int connection);
+void send_motd_header(const client_node_type &client);
 
 
 /** RESULT  : sends the content of the motd file to connection
@@ -56,7 +56,7 @@ void send_motd_header(int connection);
 
     NOTES   :
 **/
-int send_motd_file(int connection);
+int send_motd_file(client_node_type &connection);
 
 
 /** RESULT  : sends the motd header and contents of the motd file to a connected client
@@ -67,6 +67,6 @@ int send_motd_file(int connection);
 
     NOTES   :
 */
-void send_motd(int connection);
+void send_motd(client_node_type &client);
 
 #endif // SERVER_MESSAGING_H_INCLUDED

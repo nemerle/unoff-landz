@@ -42,7 +42,7 @@
 
     NOTES    :
 **/
-void add_db_attribute(int attribute_id, char *attribute_description, int race_id, int attribute_type_id);
+void add_db_attribute(int attribute_id, const char *attribute_description, int race_id, int attribute_type_id);
 
 
 /** RESULT   : adds attribute values to the database for a specified attribute

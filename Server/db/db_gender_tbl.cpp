@@ -1,30 +1,30 @@
 /******************************************************************************************************************
-	Copyright 2014 UnoffLandz
+    Copyright 2014 UnoffLandz
 
-	This file is part of unoff_server_4.
+    This file is part of unoff_server_4.
 
-	unoff_server_4 is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation, either version 3 of the License, or
-	(at your option) any later version.
+    unoff_server_4 is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
 
-	unoff_server_4 is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
+    unoff_server_4 is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
 
-	You should have received a copy of the GNU General Public License
-	along with unoff_server_4.  If not, see <http://www.gnu.org/licenses/>.
+    You should have received a copy of the GNU General Public License
+    along with unoff_server_4.  If not, see <http://www.gnu.org/licenses/>.
 *******************************************************************************************************************/
-
-#include <string.h> //support strcpy
-#include <stdio.h> //support snprintf
 
 #include "database_functions.h"
 #include "../logging.h"
 #include "../gender.h"
 #include "../server_start_stop.h"
 
+#include <string.h> //support strcpy
+#include <stdio.h> //support snprintf
+#include <cassert>
 int load_db_genders(){
 
     /** public function - see header */
@@ -36,7 +36,7 @@ int load_db_genders(){
     char sql[MAX_SQL_LEN]="";
     snprintf(sql, MAX_SQL_LEN, "SELECT * FROM GENDER_TABLE");
 
-    rc=sqlite3_prepare_v2(db, sql, -1, &stmt, NULL);
+    rc=sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr);
 
     if(rc!=SQLITE_OK){
 
@@ -49,7 +49,7 @@ int load_db_genders(){
     int i=0;
 
     while ( (rc = sqlite3_step(stmt)) == SQLITE_ROW) {
-
+        assert(i<sizeof(gender)/sizeof(gender_type));
         //get the gender id and check that the value does not exceed the maximum permitted
         int gender_id=sqlite3_column_int(stmt,0);
 
@@ -58,7 +58,6 @@ int load_db_genders(){
             log_event(EVENT_ERROR, "gender id [%i] exceeds range [%i] in function %s: module %s: line %i", gender_id, MAX_GENDER, __func__, __FILE__, __LINE__);
             stop_server();
         }
-
         //get gender name
         strcpy(gender[gender_id].gender_name, (char*)sqlite3_column_text(stmt, 1));
 
@@ -86,7 +85,7 @@ int load_db_genders(){
 }
 
 
-void add_db_gender(int gender_id, char *gender_name){
+void add_db_gender(int gender_id, const char *gender_name){
 
     /** public function - see header */
 

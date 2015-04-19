@@ -38,7 +38,7 @@ int load_db_seasons(){
     char sql[MAX_SQL_LEN]="";
     snprintf(sql, MAX_SQL_LEN, "SELECT * FROM SEASON_TABLE");
 
-    rc=sqlite3_prepare_v2(db, sql, -1, &stmt, NULL);
+    rc=sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr);
     if(rc!=SQLITE_OK){
 
         log_sqlite_error("sqlite3_prepare_v2 failed", __func__, __FILE__, __LINE__, rc, sql);
@@ -80,7 +80,7 @@ int load_db_seasons(){
 }
 
 
-void add_db_season(int season_id, char *season_name, char *season_description, int start_day, int end_day){
+void add_db_season(int season_id, const char *season_name, const char *season_description, int start_day, int end_day){
 
    /** public function - see header */
 

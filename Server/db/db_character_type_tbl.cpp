@@ -1,24 +1,22 @@
 /******************************************************************************************************************
-	Copyright 2014 UnoffLandz
+    Copyright 2014 UnoffLandz
 
-	This file is part of unoff_server_4.
+    This file is part of unoff_server_4.
 
-	unoff_server_4 is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation, either version 3 of the License, or
-	(at your option) any later version.
+    unoff_server_4 is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
 
-	unoff_server_4 is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
+    unoff_server_4 is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
 
-	You should have received a copy of the GNU General Public License
-	along with unoff_server_4.  If not, see <http://www.gnu.org/licenses/>.
+    You should have received a copy of the GNU General Public License
+    along with unoff_server_4.  If not, see <http://www.gnu.org/licenses/>.
 *******************************************************************************************************************/
 
-#include <stdio.h> //support for snprintf
-#include <stdlib.h> //support for NULL data type
 
 #include "database_functions.h"
 #include "../logging.h"
@@ -26,6 +24,10 @@
 #include "../server_start_stop.h"
 #include "../character_race.h"
 #include "../gender.h"
+
+#include <cassert>
+#include <stdlib.h> //support for NULL data type
+#include <stdio.h> //support for snprintf
 
 int load_db_char_types(){
 
@@ -35,8 +37,8 @@ int load_db_char_types(){
     sqlite3_stmt *stmt;
 
     char sql[MAX_SQL_LEN]="";
-    snprintf(sql, MAX_SQL_LEN, "SELECT * FROM CHARACTER_TYPE_TABLE");
-    rc=sqlite3_prepare_v2(db, sql, -1, &stmt, NULL);
+    snprintf(sql, MAX_SQL_LEN, "SELECT CHARACTER_TYPE_ID,RACE_ID,SEX_ID FROM CHARACTER_TYPE_TABLE");
+    rc=sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr);
 
     if(rc!=SQLITE_OK){
 
@@ -60,7 +62,9 @@ int load_db_char_types(){
         character_type[char_type_id].race_id=sqlite3_column_int(stmt, 1);
         character_type[char_type_id].gender_id=sqlite3_column_int(stmt, 2);
 
-        log_event(EVENT_INITIALISATION, "loaded [%i] %s %s", char_type_id, race[character_type[char_type_id].race_id].race_name, gender[character_type[char_type_id].gender_id].gender_name);
+        log_event(EVENT_INITIALISATION, "loaded [%i] %s %s", char_type_id,
+                  race[character_type[char_type_id].race_id].race_name,
+                gender[character_type[char_type_id].gender_id].gender_name);
 
         i++;
     }

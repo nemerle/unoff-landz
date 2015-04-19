@@ -1,20 +1,20 @@
 /******************************************************************************************************************
-	Copyright 2014 UnoffLandz
+    Copyright 2014 UnoffLandz
 
-	This file is part of unoff_server_4.
+    This file is part of unoff_server_4.
 
-	unoff_server_4 is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation, either version 3 of the License, or
-	(at your option) any later version.
+    unoff_server_4 is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
 
-	unoff_server_4 is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
+    unoff_server_4 is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
 
-	You should have received a copy of the GNU General Public License
-	along with unoff_server_4.  If not, see <http://www.gnu.org/licenses/>.
+    You should have received a copy of the GNU General Public License
+    along with unoff_server_4.  If not, see <http://www.gnu.org/licenses/>.
 *******************************************************************************************************************/
 
 #ifndef MAPS_H_INCLUDED
@@ -68,23 +68,23 @@ struct map_node_type{
 
     int map_axis;
 
-    unsigned char tile_map[TILE_MAP_MAX];
+    uint8_t tile_map[TILE_MAP_MAX];
     int tile_map_size;
 
-    unsigned char height_map[HEIGHT_MAP_MAX];
+    uint8_t height_map[HEIGHT_MAP_MAX];
     int height_map_size;
 
-    unsigned char threed_object_map[THREED_OBJECT_MAP_MAX];
+    uint8_t threed_object_map[THREED_OBJECT_MAP_MAX];
     int threed_object_map_size;
     int threed_object_structure_len;
     int threed_object_count;
 
-    unsigned char twod_object_map[TWOD_OBJECT_MAP_MAX];
+    uint8_t twod_object_map[TWOD_OBJECT_MAP_MAX];
     int twod_object_map_size;
     int twod_object_structure_len;
     int twod_object_count;
 
-    //unsigned char lights_object_map[LIGHTS_OBJECT_MAP_MAX];
+    //uint8_t lights_object_map[LIGHTS_OBJECT_MAP_MAX];
     int lights_object_map_size;
     int lights_object_structure_len;
     int lights_object_count;
@@ -94,7 +94,7 @@ struct map_list_type {
     int count;
     struct map_node_type map[MAX_MAPS];
 };
-struct map_list_type maps;
+extern map_list_type maps;
 
 
 /** RESULT  : calculates the distance between two entities on a map

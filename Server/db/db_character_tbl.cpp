@@ -1,20 +1,20 @@
 /******************************************************************************************************************
-	Copyright 2014 UnoffLandz
+    Copyright 2014 UnoffLandz
 
-	This file is part of unoff_server_4.
+    This file is part of unoff_server_4.
 
-	unoff_server_4 is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation, either version 3 of the License, or
-	(at your option) any later version.
+    unoff_server_4 is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
 
-	unoff_server_4 is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
+    unoff_server_4 is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
 
-	You should have received a copy of the GNU General Public License
-	along with unoff_server_4.  If not, see <http://www.gnu.org/licenses/>.
+    You should have received a copy of the GNU General Public License
+    along with unoff_server_4.  If not, see <http://www.gnu.org/licenses/>.
 *******************************************************************************************************************/
 
 #include <stdio.h> //support for snprintf
@@ -28,7 +28,7 @@
 #include "../game_data.h"
 #include "../server_start_stop.h"
 
-int get_db_char_data(char *char_name){
+int get_db_char_data(const char *char_name){
 
     /** public function - see header */
 
@@ -38,7 +38,7 @@ int get_db_char_data(char *char_name){
     char char_tbl_sql[MAX_SQL_LEN]="";
     snprintf(char_tbl_sql, MAX_SQL_LEN, "SELECT * FROM CHARACTER_TABLE WHERE CHAR_NAME=?");
 
-    sqlite3_prepare_v2(db, char_tbl_sql, -1, &stmt, NULL);
+    sqlite3_prepare_v2(db, char_tbl_sql, -1, &stmt, nullptr);
     if(rc!=SQLITE_OK){
 
         log_sqlite_error("sqlite3_prepare_v2 failed", __func__, __FILE__, __LINE__, rc, char_tbl_sql);
@@ -47,48 +47,49 @@ int get_db_char_data(char *char_name){
     sqlite3_bind_text(stmt, 1, char_name, -1, SQLITE_STATIC);
 
     //zero the struct (critical that we set character_id element to zero as we use this to flag if char has been found
-    memset(&character, 0, sizeof(character));
+    character.character_id = 0;
+
 
     while ( (rc = sqlite3_step(stmt)) == SQLITE_ROW) {
 
         character.character_id=sqlite3_column_int(stmt, 0);
-        strcpy(character.char_name, (char*) sqlite3_column_text(stmt, 1));
-        strcpy(character.password, (char*) sqlite3_column_text(stmt,2));
+        character.char_name= (const char*) sqlite3_column_text(stmt, 1);
+        character.password = (const char*) sqlite3_column_text(stmt,2);
         character.char_status=sqlite3_column_int(stmt, 3);
         character.active_chan=sqlite3_column_int(stmt, 4);
-
-        character.chan[0]=sqlite3_column_int(stmt, 5);
-        character.chan[1]=sqlite3_column_int(stmt, 6);
-        character.chan[2]=sqlite3_column_int(stmt, 7);
+        character.chan.clear();
+        character.chan.push_back(sqlite3_column_int(stmt, 5)); // channel 0
+        character.chan.push_back(sqlite3_column_int(stmt, 6)); // channel 1
+        character.chan.push_back(sqlite3_column_int(stmt, 7)); // channel 2
 
         character.gm_permission=sqlite3_column_int(stmt, 8);
         character.ig_permission=sqlite3_column_int(stmt, 9);
         character.map_id=sqlite3_column_int(stmt, 10);
         character.map_tile=sqlite3_column_int(stmt, 11);
-        character.guild_id=sqlite3_column_int(stmt, 12);
-        character.char_type=sqlite3_column_int(stmt, 13);
-        character.skin_type=sqlite3_column_int(stmt, 14);
-        character.hair_type=sqlite3_column_int(stmt, 15);
-        character.shirt_type=sqlite3_column_int(stmt, 16);
-        character.pants_type=sqlite3_column_int(stmt, 17);
-        character.boots_type=sqlite3_column_int(stmt, 18);
-        character.head_type=sqlite3_column_int(stmt, 19);
-        character.shield_type=sqlite3_column_int(stmt, 20);
-        character.weapon_type=sqlite3_column_int(stmt, 21);
-        character.cape_type=sqlite3_column_int(stmt, 22);
-        character.helmet_type=sqlite3_column_int(stmt, 23);
-        character.frame=sqlite3_column_int(stmt, 24);
-        character.max_health=sqlite3_column_int(stmt, 25);
-        character.current_health=sqlite3_column_int(stmt, 26);
+        character.actor_data.guild_id=sqlite3_column_int(stmt, 12);
+        character.actor_data.char_type=sqlite3_column_int(stmt, 13);
+        character.actor_data.skin_type=sqlite3_column_int(stmt, 14);
+        character.actor_data.hair_type=sqlite3_column_int(stmt, 15);
+        character.actor_data.shirt_type=sqlite3_column_int(stmt, 16);
+        character.actor_data.pants_type=sqlite3_column_int(stmt, 17);
+        character.actor_data.boots_type=sqlite3_column_int(stmt, 18);
+        character.actor_data.head_type=sqlite3_column_int(stmt, 19);
+        character.actor_data.shield_type=sqlite3_column_int(stmt, 20);
+        character.actor_data.weapon_type=sqlite3_column_int(stmt, 21);
+        character.actor_data.cape_type=sqlite3_column_int(stmt, 22);
+        character.actor_data.helmet_type=sqlite3_column_int(stmt, 23);
+        character.actor_data.frame=sqlite3_column_int(stmt, 24);
+        character.actor_data.max_health=sqlite3_column_int(stmt, 25);
+        character.actor_data.current_health=sqlite3_column_int(stmt, 26);
         //character.last_in_game=sqlite3_column_int(stmt,  27);
         character.char_created=sqlite3_column_int(stmt, 28);
         character.joined_guild=sqlite3_column_int(stmt, 29);
-        character.physique_pp=sqlite3_column_int(stmt, 30);
-        character.vitality_pp=sqlite3_column_int(stmt, 31);
-        character.will_pp=sqlite3_column_int(stmt, 32);
-        character.coordination_pp=sqlite3_column_int(stmt, 33);
-        character.overall_exp=sqlite3_column_int(stmt, 34);
-        character.harvest_exp=sqlite3_column_int(stmt, 35);
+        character.attribute_data.physique.current=sqlite3_column_int(stmt, 30);
+        character.attribute_data.vitality.current=sqlite3_column_int(stmt, 31);
+        character.attribute_data.will.current=sqlite3_column_int(stmt, 32);
+        character.attribute_data.coordination.current=sqlite3_column_int(stmt, 33);
+        character.attribute_data.overall_exp.current=sqlite3_column_int(stmt, 34);
+        character.attribute_data.harvest_exp.current=sqlite3_column_int(stmt, 35);
     }
 
     if (rc != SQLITE_DONE) {
@@ -106,7 +107,7 @@ int get_db_char_data(char *char_name){
     char inventory_tbl_sql[MAX_SQL_LEN]="";
     snprintf(inventory_tbl_sql, MAX_SQL_LEN, "SELECT SLOT, IMAGE_ID, AMOUNT FROM INVENTORY_TABLE WHERE CHAR_ID=?");
 
-    sqlite3_prepare_v2(db, inventory_tbl_sql, -1, &stmt, NULL);
+    sqlite3_prepare_v2(db, inventory_tbl_sql, -1, &stmt, nullptr);
     if(rc!=SQLITE_DONE){
 
         log_sqlite_error("sqlite3_prepare_v2 failed", __func__, __FILE__, __LINE__, rc, inventory_tbl_sql);
@@ -153,7 +154,7 @@ int get_db_max_char_id(){
     char sql[MAX_SQL_LEN]="";
     snprintf(sql, MAX_SQL_LEN, "SELECT MAX(CHAR_ID) FROM CHARACTER_TABLE;");
 
-    rc=sqlite3_prepare_v2(db, sql, -1, &stmt, NULL);
+    rc=sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr);
     if(rc!=SQLITE_OK){
 
         log_sqlite_error("sqlite3_prepare_v2 failed", __func__, __FILE__, __LINE__, rc, sql);
@@ -191,7 +192,7 @@ int get_db_char_count(){
     char sql[MAX_SQL_LEN]="";
     snprintf(sql, MAX_SQL_LEN, "SELECT count(*) FROM CHARACTER_TABLE");
 
-    rc=sqlite3_prepare_v2(db, sql, -1, &stmt, NULL);
+    rc=sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr);
     if(rc!=SQLITE_OK){
 
         log_sqlite_error("sqlite3_prepare_v2 failed", __func__, __FILE__, __LINE__, rc, sql);
@@ -220,7 +221,7 @@ int get_db_char_count(){
 }
 
 
-int add_db_char_data(struct client_node_type character){
+int add_db_char_data(const client_node_type &character){
 
     /** public function - see header **/
 
@@ -228,7 +229,7 @@ int add_db_char_data(struct client_node_type character){
 
     int rc=0;
     sqlite3_stmt *stmt;
-    char *sErrMsg = 0;
+    char *sErrMsg = nullptr;
 
     char char_tbl_sql[MAX_SQL_LEN]="";
     snprintf(char_tbl_sql, MAX_SQL_LEN,
@@ -261,35 +262,35 @@ int add_db_char_data(struct client_node_type character){
         "CHAR_CREATED" \
         ") VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 
-    rc=sqlite3_prepare_v2(db, char_tbl_sql, -1, &stmt, NULL);
+    rc=sqlite3_prepare_v2(db, char_tbl_sql, -1, &stmt, nullptr);
     if(rc!=SQLITE_OK){
 
         log_sqlite_error("sqlite3_prepare_v2 failed", __func__, __FILE__, __LINE__, rc, char_tbl_sql);
     }
 
-    sqlite3_bind_text(stmt, 1, character.char_name, -1, SQLITE_STATIC);
-    sqlite3_bind_text(stmt, 2, character.password, -1, SQLITE_STATIC);
+    sqlite3_bind_text(stmt, 1,  character.char_name.c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_text(stmt, 2,  character.password.c_str(), -1, SQLITE_TRANSIENT);
     sqlite3_bind_int(stmt, 3, CHAR_ALIVE);
     sqlite3_bind_int(stmt, 4, character.active_chan);
-    sqlite3_bind_int(stmt, 5, character.chan[0]);
-    sqlite3_bind_int(stmt, 6, character.chan[1]);
-    sqlite3_bind_int(stmt, 7, character.chan[2]);
+    sqlite3_bind_int(stmt, 5, (character.chan.size() > 0) ? character.chan[0] : 0);
+    sqlite3_bind_int(stmt, 6, (character.chan.size() > 1) ? character.chan[1] : 0);
+    sqlite3_bind_int(stmt, 7, (character.chan.size() > 2) ? character.chan[2] : 0);
     sqlite3_bind_int(stmt, 8, FALSE); // gm permission
     sqlite3_bind_int(stmt, 9, FALSE); // ig permission
     sqlite3_bind_int(stmt, 10, character.map_id);
     sqlite3_bind_int(stmt, 11, character.map_tile);
-    sqlite3_bind_int(stmt, 12, character.char_type);
-    sqlite3_bind_int(stmt, 13, character.skin_type);
-    sqlite3_bind_int(stmt, 14, character.hair_type);
-    sqlite3_bind_int(stmt, 15, character.shirt_type);
-    sqlite3_bind_int(stmt, 16, character.pants_type);
-    sqlite3_bind_int(stmt, 17, character.boots_type);
-    sqlite3_bind_int(stmt, 18, character.head_type);
+    sqlite3_bind_int(stmt, 12, character.actor_data.char_type);
+    sqlite3_bind_int(stmt, 13, character.actor_data.skin_type);
+    sqlite3_bind_int(stmt, 14, character.actor_data.hair_type);
+    sqlite3_bind_int(stmt, 15, character.actor_data.shirt_type);
+    sqlite3_bind_int(stmt, 16, character.actor_data.pants_type);
+    sqlite3_bind_int(stmt, 17, character.actor_data.boots_type);
+    sqlite3_bind_int(stmt, 18, character.actor_data.head_type);
     sqlite3_bind_int(stmt, 19, SHIELD_NONE);
     sqlite3_bind_int(stmt, 20, WEAPON_NONE);
     sqlite3_bind_int(stmt, 21, CAPE_NONE);
     sqlite3_bind_int(stmt, 22, HELMET_NONE);
-    sqlite3_bind_int(stmt, 23, character.frame);
+    sqlite3_bind_int(stmt, 23, character.actor_data.frame);
     sqlite3_bind_int(stmt, 24, 0); // max health
     sqlite3_bind_int(stmt, 25, 0); // current health
     sqlite3_bind_int(stmt, 26, character.char_created);
@@ -312,14 +313,14 @@ int add_db_char_data(struct client_node_type character){
     char inventory_tbl_sql[MAX_SQL_LEN]="";
     snprintf(inventory_tbl_sql, MAX_SQL_LEN, "INSERT INTO INVENTORY_TABLE(CHAR_ID, SLOT) VALUES(?, ?)");
 
-    rc=sqlite3_prepare_v2(db, inventory_tbl_sql, -1, &stmt, NULL);
+    rc=sqlite3_prepare_v2(db, inventory_tbl_sql, -1, &stmt, nullptr);
     if(rc!=SQLITE_OK){
 
         log_sqlite_error("sqlite3_prepare_v2 failed", __func__, __FILE__, __LINE__, rc, inventory_tbl_sql);
     }
 
     //wrap in a transaction to speed up insertion
-    sqlite3_exec(db, "BEGIN TRANSACTION", NULL, NULL, &sErrMsg);
+    sqlite3_exec(db, "BEGIN TRANSACTION", nullptr, nullptr, &sErrMsg);
     if(rc!=SQLITE_OK){
 
         log_sqlite_error("sqlite3_exec failed", __func__, __FILE__, __LINE__, rc, inventory_tbl_sql);
@@ -343,7 +344,7 @@ int add_db_char_data(struct client_node_type character){
         sqlite3_reset(stmt);
     }
 
-    sqlite3_exec(db, "END TRANSACTION", NULL, NULL, &sErrMsg);
+    sqlite3_exec(db, "END TRANSACTION", nullptr, nullptr, &sErrMsg);
     if (rc != SQLITE_DONE) {
 
         log_sqlite_error("sqlite3_exec failed", __func__, __FILE__, __LINE__, rc, inventory_tbl_sql);
@@ -355,7 +356,7 @@ int add_db_char_data(struct client_node_type character){
         log_sqlite_error("sqlite3_finalize failed", __func__, __FILE__, __LINE__, rc, inventory_tbl_sql);
     }
 
-    log_event(EVENT_SESSION, "char [%s] added to database", character.char_name);
+    log_event(EVENT_SESSION, "char [%s] added to database",  character.char_name.c_str());
 
     //As the id of the new record is created automatically by sqllite, we need to find out what it is and
     //return it so that we can link an inventory table entry for the char.
@@ -372,7 +373,7 @@ void get_db_last_char_created(){
     char sql[MAX_SQL_LEN]="";
     snprintf(sql, MAX_SQL_LEN, "SELECT CHAR_NAME, CHAR_CREATED FROM CHARACTER_TABLE ORDER BY CHAR_CREATED LIMIT 1;");
 
-    rc=sqlite3_prepare_v2(db, sql, -1, &stmt, NULL);
+    rc=sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr);
     if(rc!=SQLITE_OK){
 
         log_sqlite_error("sqlite3_prepare_v2 failed", __func__, __FILE__, __LINE__, rc, sql);
@@ -380,7 +381,7 @@ void get_db_last_char_created(){
 
     while ( (rc = sqlite3_step(stmt)) == SQLITE_ROW) {
 
-        strcpy(game_data.name_last_char_created, (char*)sqlite3_column_text(stmt, 0));
+        game_data.name_last_char_created= (const char*)sqlite3_column_text(stmt, 0);
         game_data.date_last_char_created=sqlite3_column_int(stmt,1);
     }
 

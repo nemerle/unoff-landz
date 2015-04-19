@@ -28,6 +28,6 @@ enum{ //return values from process_hash_command
     HASH_CMD_ABORTED
 };
 
-void process_hash_commands(int connection, char *text);
+void process_hash_commands(client_node_type &client, char *text);
 
 #endif // HASH_COMMANDS_H_INCLUDED

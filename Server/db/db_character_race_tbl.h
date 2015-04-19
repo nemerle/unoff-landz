@@ -46,6 +46,6 @@ int load_db_char_races();
 
     NOTES   :
 **/
-void add_db_race(int race_id, char *race_name, char *race_description);
+void add_db_race(int race_id, const char *race_name, const char *race_description);
 
 #endif // DB_CHARACTER_RACE_TBL_H_INCLUDED

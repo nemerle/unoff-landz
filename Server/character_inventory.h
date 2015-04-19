@@ -21,15 +21,10 @@
 #ifndef CHARACTER_INVENTORY_H_INCLUDED
 #define CHARACTER_INVENTORY_H_INCLUDED
 
-#define MAX_INVENTORY_SLOTS 36
+#include "Common/client_inventory_data.h"
 
-struct client_inventory_type {
-        int image_id;
-        int amount;
-        int slot;
-        int flags;
-};
-struct client_inventory_type client_inventory;
+#define MAX_INVENTORY_SLOTS 36
+extern client_inventory_type client_inventory;
 
 
 /** RESULT  : calculates the maximum carry capacity for a char

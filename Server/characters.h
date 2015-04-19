@@ -122,17 +122,7 @@ enum { // helmet type
     HELMET_NONE,
 };
 
-struct client_node_type character;
-
-/** RESULT  : calculates the visual range of a char
-
-    RETURNS : the visual range
-
-    PURPOSE : required by broadcast_add_new_enhanced_actor_packet
-
-    NOTES   :
-*/
-int get_char_visual_range(int connection);
+extern client_node_type character;
 
 
 /** RESULT  : determines if a char is in-game
@@ -143,17 +133,8 @@ int get_char_visual_range(int connection);
 
     NOTES   :
 */
-int char_in_game(char *char_name);
+client_node_type *char_in_game(const char *char_name);
 
 
-/** RESULT  : determines how long a char has been in game since creation
-
-    RETURNS : time in seconds
-
-    PURPOSE :
-
-    NOTES   :
-*/
-int char_age(int connection);
 
 #endif // CHARACTERS_H_INCLUDED

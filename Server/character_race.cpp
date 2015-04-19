@@ -19,12 +19,10 @@
 
 #include "clients.h"
 #include "character_type.h"
+#include "character_race.h"
 
-int get_char_race_id(int connection){
+race_type race[MAX_RACES+1];
 
-    /** public function - see header */
-
-    int char_type_id=clients.client[connection].char_type;
-
-    return character_type[char_type_id].race_id;
+int client_node_type::race_id() const {
+    return character_type[actor_data.char_type].race_id;
 }

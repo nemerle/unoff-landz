@@ -43,6 +43,6 @@ int load_db_genders();
 
     NOTES   : to eventually be outsourced to a separate utility
 **/
-void add_db_gender(int gender_id, char *gender_name);
+void add_db_gender(int gender_id, const char *gender_name);
 
 #endif // DB_CHARACTER_GENDER_TBL_H_INCLUDED

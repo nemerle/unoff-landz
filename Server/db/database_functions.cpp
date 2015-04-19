@@ -1,20 +1,20 @@
 /******************************************************************************************************************
-	Copyright 2014 UnoffLandz
+    Copyright 2014 UnoffLandz
 
-	This file is part of unoff_server_4.
+    This file is part of unoff_server_4.
 
-	unoff_server_4 is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation, either version 3 of the License, or
-	(at your option) any later version.
+    unoff_server_4 is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
 
-	unoff_server_4 is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
+    unoff_server_4 is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
 
-	You should have received a copy of the GNU General Public License
-	along with unoff_server_4.  If not, see <http://www.gnu.org/licenses/>.
+    You should have received a copy of the GNU General Public License
+    along with unoff_server_4.  If not, see <http://www.gnu.org/licenses/>.
 *******************************************************************************************************************/
 
 #include <stdio.h> //supports snprintf
@@ -36,7 +36,7 @@
 #include "../attributes.h"
 #include "../chat.h"
 
-sqlite3 *db;
+sqlite3 *db; // database handle which is set when function open_database is called
 
 int current_database_version();
 static int prepare_query(const char *sql,sqlite3_stmt **stmt,const char *_func,int line)
@@ -48,9 +48,9 @@ static int prepare_query(const char *sql,sqlite3_stmt **stmt,const char *_func,i
     }
     return 0;
 }
-void open_database(char *database_name){
+void open_database(const char *database_name){
 
-   /** public function - see header **/
+    /** public function - see header **/
 
     int rc = sqlite3_open(database_name, &db);
 
@@ -122,14 +122,14 @@ int database_table_count(){
     return table_count;
 }
 
-void create_database_table(char *sql){
+/** RESULT  : creates a database table
 
-    /** RESULT  : creates a database table
+   RETURNS  : void
 
-       RETURNS  : void
+   PURPOSE  : used by function create_new_database
+**/
+void create_database_table(const char *sql){
 
-       PURPOSE  : used by function create_new_database
-    **/
 
     int rc;
     sqlite3_stmt *stmt;
@@ -171,7 +171,7 @@ void create_database_table(char *sql){
     log_event(EVENT_INITIALISATION, "Created table [%s]", table_name);
 }
 
-void process_sql(char *sql_str){
+void process_sql(const char *sql_str){
 
     /** public function - see header **/
 
@@ -249,7 +249,7 @@ void create_default_database(){
 
     add_db_game_data(1, 27225, 1, 27225, 360);
 
-    add_db_channel(1, 0, CHAN_PERMANENT, "", "Main Channel", "A channel for chatting", 1);
+    add_db_channel(1, 0, channel_node_type::CHAN_PERMANENT, "", "Main Channel", "A channel for chatting", 1);
 
     add_db_race(1, "Human", "tall");
     add_db_race(2, "Dwarf", "short");

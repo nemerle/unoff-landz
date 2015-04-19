@@ -1,20 +1,20 @@
 /******************************************************************************************************************
-	Copyright 2014 UnoffLandz
+    Copyright 2014 UnoffLandz
 
-	This file is part of unoff_server_4.
+    This file is part of unoff_server_4.
 
-	unoff_server_4 is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation, either version 3 of the License, or
-	(at your option) any later version.
+    unoff_server_4 is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
 
-	unoff_server_4 is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
+    unoff_server_4 is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
 
-	You should have received a copy of the GNU General Public License
-	along with unoff_server_4.  If not, see <http://www.gnu.org/licenses/>.
+    You should have received a copy of the GNU General Public License
+    along with unoff_server_4.  If not, see <http://www.gnu.org/licenses/>.
 ******************************************************************************************************************/
 
 #ifndef CHAT_H_INCLUDED
@@ -23,17 +23,17 @@
 #define MAX_CHANNELS 10
 #define MAX_CHAN_SLOTS 4
 #define LOCAL_CHAT_RANGE 10
-
+struct client_node_type;
 struct channel_node_type{
 
-    enum {CHAN_VACANT, CHAN_SYSTEM, CHAN_PERMANENT, CHAN_GUILD, CHAN_CHAT} chan_type;
+    enum eChanType {CHAN_VACANT, CHAN_SYSTEM, CHAN_PERMANENT, CHAN_GUILD, CHAN_CHAT} chan_type;
     char channel_name[80];
     int owner_id; // could be char or guild depending on chan_type
     char password[80];
     char description[80];
     int new_chars;
 };
-struct channel_node_type channel[MAX_CHANNELS];
+extern struct channel_node_type channel[MAX_CHANNELS];
 
 enum { //return values from process_guild_chat
     GM_INVALID,
@@ -65,7 +65,7 @@ enum { // return values for process_chat function
 
     NOTES   :
 **/
-int is_player_in_chan(int connection, int chan);
+int is_player_in_chan(const client_node_type &client, int chan);
 
 
 /** RESULT  : joins a chat_channel
@@ -76,7 +76,7 @@ int is_player_in_chan(int connection, int chan);
 
     NOTES   :
 **/
-int join_channel(int connection, int chan);
+int join_channel(client_node_type &src_client, int chan);
 
 
 /** RESULT  : leaves a chat_channel
@@ -87,7 +87,7 @@ int join_channel(int connection, int chan);
 
     NOTES   :
 **/
-int leave_channel(int connection, int chan);
+int leave_channel(client_node_type &client, int chan);
 
 
 /** RESULT  : send a private message
@@ -98,7 +98,7 @@ int leave_channel(int connection, int chan);
 
     NOTES   :
 **/
-void send_pm(int connection, char *receiver_name, char *message);
+void send_pm(client_node_type &client, const char *receiver_name, const char *message);
 
 
 /** RESULT  : lists participants in a chat channel
@@ -110,6 +110,6 @@ void send_pm(int connection, char *receiver_name, char *message);
 
     NOTES   :
 **/
-void list_characters_in_chan(int connection, int chan);
+void list_characters_in_chan(client_node_type &client, int chan);
 
 #endif // CHAT_H_INCLUDED

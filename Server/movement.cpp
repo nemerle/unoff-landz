@@ -1,26 +1,28 @@
 /******************************************************************************************************************
-	Copyright 2014 UnoffLandz
+    Copyright 2014 UnoffLandz
 
-	This file is part of unoff_server_4.
+    This file is part of unoff_server_4.
 
-	unoff_server_4 is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation, either version 3 of the License, or
-	(at your option) any later version.
+    unoff_server_4 is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
 
-	unoff_server_4 is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
+    unoff_server_4 is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
 
-	You should have received a copy of the GNU General Public License
-	along with unoff_server_4.  If not, see <http://www.gnu.org/licenses/>.
+    You should have received a copy of the GNU General Public License
+    along with unoff_server_4.  If not, see <http://www.gnu.org/licenses/>.
 *******************************************************************************************************************/
 
 #include "maps.h"
 #include "movement.h"
 #include "logging.h"
 #include "characters.h"
+
+vector_type vector[8];
 
 void initialise_movement_vectors(){
 
@@ -49,12 +51,11 @@ int is_map_tile_occupied(int map_id, int map_tile){
     if(maps.map[map_id].height_map[map_tile]<MIN_TRAVERSABLE_VALUE) return TILE_NON_TRAVERSABLE;
 
     //now check through clients and see if any have characters occupying that tile
-    int i=0;
-    for(i=0; i<clients.client_count; i++){
-
-        if(clients.client[i].map_tile==map_tile && clients.client[i].map_id==map_id) return TILE_OCCUPIED;
+    for(const auto &v : clients) {
+        const client_node_type *client(v.second);
+        if(client->map_tile==map_tile && client->map_id==map_id)
+            return TILE_OCCUPIED;
     }
-
     return TILE_UNOCCUPIED;
 }
 

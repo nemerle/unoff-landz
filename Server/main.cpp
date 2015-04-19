@@ -34,14 +34,15 @@ To compile server, link with the following libraries :
 
 *******************************************************************************************************************/
 #define _GNU_SOURCE 1   //supports TEMP_FAILURE_RETRY
-#include <stdio.h>      //supports printf function
-#include <stdlib.h>     //supports free function
-#include <string.h>     //supports memset and strcpy functions
+#include <cstdio>      //supports printf function
+#include <cstdlib>     //supports free function
+#include <cstring>     //supports memset and strcpy functions
 #include <errno.h>      //supports errno function support
 #include <unistd.h>     //supports close function
 #include <arpa/inet.h>  //supports recv and accept function
 #include <ev.h>         //supports ev event library
 #include <fcntl.h>      //supports fcntl
+#include <cassert>      //supports fcntl
 
 #include "server_parameters.h"
 #include "global.h"
@@ -74,7 +75,7 @@ To compile server, link with the following libraries :
 #define DEBUG_MAIN 1
 #define VERSION "4"
 
-struct ev_io *libevlist[MAX_CLIENTS] = {NULL};
+struct ev_io *libevlist[MAX_CLIENTS] = {nullptr};
 
 void socket_accept_callback(struct ev_loop *loop, struct ev_io *watcher, int revents);
 void socket_read_callback(struct ev_loop *loop, struct ev_io *watcher, int revents);
@@ -83,33 +84,33 @@ void socket_read_callback(struct ev_loop *loop, struct ev_io *watcher, int reven
 void timeout_cb(EV_P_ struct ev_timer* timer, int revents);
 void timeout_cb2(EV_P_ struct ev_timer* timer, int revents);
 void idle_cb(EV_P_ struct ev_idle *watcher, int revents);
-void close_connection_slot(int connection);
+void close_connection_slot(client_node_type &cl);
 
-void start_server(char *db_filename){
+/** RESULT   : starts the server
 
-    /** RESULT   : starts the server
+    RETURNS  : void
 
-        RETURNS  : void
+    PURPOSE  :
 
-        PURPOSE  :
+    NOTES    :
+**/
+void start_server(const char *db_filename){
 
-        NOTES    :
-    **/
 
     struct ev_loop *loop = ev_default_loop(0);
 
-    struct ev_io *socket_watcher = (struct ev_io*)malloc(sizeof(struct ev_io));
-    struct ev_idle *idle_watcher=(struct ev_idle*)malloc(sizeof(struct ev_idle));
-    struct ev_timer *timeout_watcher = (struct ev_timer*)malloc(sizeof(struct ev_timer));
-    struct ev_timer *timeout_watcher2 = (struct ev_timer*)malloc(sizeof(struct ev_timer));
+    ev_io *socket_watcher = (struct ev_io*)malloc(sizeof(struct ev_io));
+    ev_idle *idle_watcher=(struct ev_idle*)malloc(sizeof(struct ev_idle));
+    ev_timer *timeout_watcher = (struct ev_timer*)malloc(sizeof(struct ev_timer));
+    ev_timer *timeout_watcher2 = (struct ev_timer*)malloc(sizeof(struct ev_timer));
 
-    struct sockaddr_in server_addr;
+    sockaddr_in server_addr;
 
     int sd;
     int loaded=0;
 
     //set server start time
-    game_data.server_start_time=time(NULL);
+    game_data.server_start_time=time(nullptr);
 
     //display console message
     char time_stamp_str[9]="";
@@ -278,24 +279,16 @@ void start_server(char *db_filename){
         ev_run(loop, 0);
     }
 }
-
+/**
+ * \brief handles new client connections
+ */
 void socket_accept_callback(struct ev_loop *loop, struct ev_io *watcher, int revents) {
-
-    /** RESULT   : handles socket accept event
-
-        RETURNS  : void
-
-        PURPOSE  : handles new client connections
-
-        NOTES    :
-    **/
-
-    struct sockaddr_in client_addr;
+    sockaddr_in client_addr;
     socklen_t client_len = sizeof(client_addr);
     int client_sd;
 
     struct ev_io *client_watcher = (struct ev_io*) malloc(sizeof(struct ev_io));
-    if (client_watcher == NULL) {
+    if (client_watcher == nullptr) {
 
         log_event(EVENT_ERROR, "malloc failed in function %s: module %s: line %i", __func__, __FILE__, __LINE__);
         stop_server();
@@ -322,16 +315,20 @@ void socket_accept_callback(struct ev_loop *loop, struct ev_io *watcher, int rev
     if (client_sd > MAX_CLIENTS) {
 
         log_event(EVENT_ERROR, "new connection [%i] exceeds client array max [%i] ", client_sd, MAX_CLIENTS);
-
+        client_node_type fake_client;
+        fake_client.socket_fd = client_sd;
         //send message to client and deny connection
-        send_raw_text(client_sd, CHAT_SERVER, "\nSorry but the server is currently full\n");
+        send_raw_text(fake_client, CHAT_SERVER, "\nSorry but the server is currently full\n");
         close(client_sd);
         return;
     }
 
-    #if DEBUG_MAIN==1
+#if DEBUG_MAIN==1
     printf("client [%i] connected\n", client_sd);
-    #endif
+#endif
+    clients[client_sd] = new client_node_type;
+    client_node_type *new_client = clients[client_sd];
+    new_client->socket_fd = client_sd;
 
     // listen to new client
     ev_io_init(client_watcher, socket_read_callback, client_sd, EV_READ);
@@ -340,33 +337,27 @@ void socket_accept_callback(struct ev_loop *loop, struct ev_io *watcher, int rev
     libevlist[client_sd] = client_watcher;
 
     //set up connection data entry in client struct
-    clients.client[client_sd].client_status=client_node_type::CONNECTED;
-    strcpy(clients.client[client_sd].ip_address, inet_ntoa(client_addr.sin_addr));
+    new_client->client_status=client_node_type::CONNECTED;
+    strcpy(new_client->ip_address, inet_ntoa(client_addr.sin_addr));
 
     //set up heartbeat
-    gettimeofday(&time_check, NULL);
-    clients.client[client_sd].time_of_last_heartbeat=time_check.tv_sec;
+    gettimeofday(&time_check, nullptr);
+    new_client->time_of_last_heartbeat=time_check.tv_sec;
 
     //send welcome message and motd to client
-    send_raw_text(client_sd, CHAT_SERVER, SERVER_WELCOME_MSG);
-    send_motd(client_sd);
-    send_raw_text(client_sd, CHAT_SERVER, "\nHit any key to continue...\n");
+    send_raw_text(*new_client, CHAT_SERVER, SERVER_WELCOME_MSG);
+    send_motd(*new_client);
+    send_raw_text(*new_client, CHAT_SERVER, "\nHit any key to continue...\n");
 }
 
-
+/** \brief handles socket read event on existing client connections
+    \returns void
+*/
 void socket_read_callback(struct ev_loop *loop, struct ev_io *watcher, int revents) {
 
-    /** RESULT   : handles socket read event
 
-        RETURNS  : void
-
-        PURPOSE  : handles existing client connections
-
-        NOTES    :
-    **/
-
-    unsigned char buffer[1024];
-    unsigned char packet[1024];
+    uint8_t buffer[1024];
+    uint8_t packet[1024];
     ssize_t read;
 
     if (EV_ERROR & revents) {
@@ -387,40 +378,44 @@ void socket_read_callback(struct ev_loop *loop, struct ev_io *watcher, int reven
         log_event(EVENT_ERROR, "read failed in function %s: module %s: line %i", __func__, __FILE__, __LINE__);
         log_text(EVENT_ERROR, "sock [%i] error [%i] [%s]", watcher->fd, errnum, strerror(errnum));
 
-        #if DEBUG_MAIN==1
+#if DEBUG_MAIN==1
         printf("read failed for client [%i] with error [%i] [%s]\n", watcher->fd, errnum, strerror(errnum));
-        #endif
+#endif
 
         log_event(EVENT_SESSION, "closing client [%i] following read error", watcher->fd);
+        auto iter = clients.find(watcher->fd);
+        assert(iter!=clients.end());
 
-        close_connection_slot(watcher->fd);
+        close_connection_slot(*iter->second);
 
         ev_io_stop(loop, libevlist[watcher->fd]);
         free(libevlist[watcher->fd]);
-        libevlist[watcher->fd] = NULL;
+        libevlist[watcher->fd] = nullptr;
 
-        //clear the struct
-        memset(&clients.client[watcher->fd], '\0', sizeof(clients.client[watcher->fd]));
-
+        delete iter->second;
+        clients.erase(iter);
         return;
     }
 
     if (read == 0) {
 
-        #if DEBUG_MAIN==1
+#if DEBUG_MAIN==1
         printf("client [%i] disconnected\n", watcher->fd);
-        #endif
+#endif
 
-        if (libevlist[watcher->fd]!= NULL) {
+        if (libevlist[watcher->fd]!= nullptr) {
 
-            close_connection_slot(watcher->fd);
+            auto iter = clients.find(watcher->fd);
+            assert(iter!=clients.end());
+            close_connection_slot(*iter->second);
 
             ev_io_stop(loop, libevlist[watcher->fd]);
-            free(libevlist[watcher->fd]);
-            libevlist[watcher->fd] = NULL;
+            ev_io *bkp = libevlist[watcher->fd];
+            libevlist[watcher->fd] = nullptr;
+            free(bkp);
 
-            //clear the struct
-            memset(&clients.client[watcher->fd], '\0', sizeof(clients.client[watcher->fd]));
+            delete iter->second;
+            clients.erase(iter);
         }
         return;
     }
@@ -429,76 +424,73 @@ void socket_read_callback(struct ev_loop *loop, struct ev_io *watcher, int reven
     if(read>0){
 
         log_event(EVENT_SESSION, "bytes received [%i]", read);
+        client_node_type *client_ptr = clients[watcher->fd];
+        assert(client_ptr!=nullptr);
+        client_node_type &client(*client_ptr);
 
-        //copy new bytes to client packet buffer(memcpy doesn't work)
-        int j=0;
-        for(j=0; j<read; j++){
-            clients.client[watcher->fd].packet_buffer[clients.client[watcher->fd].packet_buffer_length]=buffer[j];
-            clients.client[watcher->fd].packet_buffer_length++;
-        }
+        //copy new bytes to client packet buffer
+        client.packet_buffer.insert(client.packet_buffer.end(),buffer,buffer+read);
 
         //if data is in the buffer then read it
-        if(clients.client[watcher->fd].packet_buffer_length>0) {
+        if( !client.packet_buffer.empty() ) {
 
             do {
 
-                int lsb=clients.client[watcher->fd].packet_buffer[1];
-                int msb=clients.client[watcher->fd].packet_buffer[2];
+                int lsb=client.packet_buffer[1];
+                int msb=client.packet_buffer[2];
 
                 int packet_length=lsb+(msb*256)+2;
 
                 //update heartbeat
-                clients.client[watcher->fd].time_of_last_heartbeat=time_check.tv_sec;
+                client.time_of_last_heartbeat=time_check.tv_sec;
 
                 //if insufficient data received then wait for more data
-                if(clients.client[watcher->fd].packet_buffer_length<packet_length) break;
-
+                if(client.packet_buffer.size()<packet_length)
+                    break;
+                assert(packet_length<1024);
                 //copy packet from buffer
-                for(j=0; j<packet_length; j++){
-                    packet[j]=clients.client[watcher->fd].packet_buffer[j];
+                for(int j=0; j<packet_length; j++){
+                    packet[j]=client.packet_buffer[j];
                 }
 
                 //process packet
-                process_packet(watcher->fd, packet);
+                process_packet(client, packet,packet_length);
 
-                // remove packet from buffer
-                clients.client[watcher->fd].packet_buffer_length=clients.client[watcher->fd].packet_buffer_length-packet_length;
-
-                for(j=0; j<=clients.client[watcher->fd].packet_buffer_length; j++){
-                    clients.client[watcher->fd].packet_buffer[j]=clients.client[watcher->fd].packet_buffer[j+packet_length];
-                }
+                // remove packet from buffer / pop_front
+                client.packet_buffer.erase(client.packet_buffer.begin(),client.packet_buffer.begin()+packet_length);
 
             } while(1);
         }
     }
- }
+}
 
 
-void close_connection_slot(int connection){
+/** RESULT   : closes a client connection
 
-    /** RESULT   : closes a client connection
+    RETURNS  : void
 
-        RETURNS  : void
+    PURPOSE  : used in socket_accept_callback and socket_read_callback
 
-        PURPOSE  : used in socket_accept_callback and socket_read_callback
+    NOTES    :
+**/
+void close_connection_slot(client_node_type &cl){
 
-        NOTES    :
-    **/
 
-    if(clients.client[connection].client_status==client_node_type::LOGGED_IN){
+
+    if(cl.client_status==client_node_type::LOGGED_IN){
 
         //broadcast to local
-        broadcast_remove_actor_packet(connection);
+        broadcast_remove_actor_packet(cl);
 
         //update last in game time for char
-        clients.client[connection].time_of_last_minute=time(NULL);
+        cl.time_of_last_minute=time(nullptr);
 
         char sql[MAX_SQL_LEN]="";
-        snprintf(sql, MAX_SQL_LEN, "UPDATE CHARACTER_TABLE SET LAST_IN_GAME=%i WHERE CHAR_ID=%i;",(int)clients.client[connection].time_of_last_minute, clients.client[connection].character_id);
-        db_push_buffer(sql, 0, IDLE_BUFFER_PROCESS_SQL, NULL);
+        snprintf(sql, MAX_SQL_LEN, "UPDATE CHARACTER_TABLE SET LAST_IN_GAME=%i WHERE CHAR_ID=%i;",(int)cl.time_of_last_minute, cl.character_id);
+        db_push_buffer(sql);
     }
 
-    close(connection);
+    close(cl.socket_fd);
 }
 
 
@@ -531,12 +523,12 @@ void timeout_cb2(EV_P_ struct ev_timer* timer, int revents){
         game_data.game_days++;
 
         snprintf(sql, MAX_SQL_LEN, "UPDATE GAME_DATA_TABLE SET GAME_DAYS=%i WHERE GAME_DATA_ID=1", game_data.game_days);
-        db_push_buffer(sql, 0, IDLE_BUFFER_PROCESS_SQL, NULL);
+        db_push_buffer(sql);
     }
 
     snprintf(sql, MAX_SQL_LEN, "UPDATE GAME_DATA_TABLE SET GAME_MINUTES=%i WHERE GAME_DATA_ID=1", game_data.game_minutes);
-    db_push_buffer(sql, 0, IDLE_BUFFER_PROCESS_SQL, NULL);
- }
+    db_push_buffer(sql);
+}
 
 
 void timeout_cb(EV_P_ struct ev_timer* timer, int revents){
@@ -553,8 +545,6 @@ void timeout_cb(EV_P_ struct ev_timer* timer, int revents){
     (void)(timer);//removes unused parameter warning
     (void)(loop);
 
-    int i=0;
-
     if (EV_ERROR & revents) {
 
         log_event(EVENT_ERROR, "EV error in function %s: module %s: line %i", __func__, __FILE__, __LINE__);
@@ -562,51 +552,52 @@ void timeout_cb(EV_P_ struct ev_timer* timer, int revents){
     }
 
     //update time_check struct
-    gettimeofday(&time_check, NULL);
+    gettimeofday(&time_check, nullptr);
 
     //check through each connect client and process pending actions
-    for(i=0; i<MAX_CLIENTS; i++){
-
+    for(auto iter = clients.begin(),fin = clients.end(); iter!=fin; ) {
+        client_node_type *client = iter->second;
         //restrict to clients that are logged on or connected
-        if(clients.client[i].client_status==client_node_type::LOGGED_IN ||
-                clients.client[i].client_status==client_node_type::CONNECTED) {
+        if(client->client_status==client_node_type::LOGGED_IN || client->client_status==client_node_type::CONNECTED) {
 
             //check for lagged connection
-            if(clients.client[i].time_of_last_heartbeat+HEARTBEAT_INTERVAL<time_check.tv_sec){
+            if(client->time_of_last_heartbeat+HEARTBEAT_INTERVAL<time_check.tv_sec){
 
-                #if DEBUG_MAIN==1
-                printf("Client lagged out [%i] [%s]\n", i, clients.client[i].char_name);
-                #endif
+#if DEBUG_MAIN==1
+                printf("Client lagged out [%i] [%s]\n", client->id(),  client->char_name.c_str());
+#endif
 
-                log_event(EVENT_SESSION, "client [%i] char [%s] lagged out", i, clients.client[i].char_name);
+                log_event(EVENT_SESSION, "client [%i] char [%s] lagged out", client->id(),  client->char_name.c_str());
 
-                close_connection_slot(i);
+                close_connection_slot(*client);
 
-                ev_io_stop(loop, libevlist[i]);
-                free(libevlist[i]);
-                libevlist[i] = NULL;
-
-                memset(&clients.client[i], '\0', sizeof(clients.client[i]));
+                ev_io_stop(loop, libevlist[client->socket_fd]);
+                free(libevlist[client->socket_fd]);
+                libevlist[client->socket_fd] = nullptr;
+                iter = clients.erase(iter);
+                delete client;
+                continue;
             }
 
             //restrict to clients that are logged on
-            if(clients.client[i].client_status==client_node_type::LOGGED_IN) {
+            if(client->client_status==client_node_type::LOGGED_IN) {
 
                 //update client game time
-                if(clients.client[i].time_of_last_minute+GAME_MINUTE_INTERVAL<time_check.tv_sec){
+                if(client->time_of_last_minute+GAME_MINUTE_INTERVAL<time_check.tv_sec){
 
-                    clients.client[i].time_of_last_minute=time_check.tv_sec;
-                    send_new_minute(i, game_data.game_minutes);
+                    client->time_of_last_minute=time_check.tv_sec;
+                    send_new_minute(*client, game_data.game_minutes);
 
                     //update database with time char was last in game
                     char sql[MAX_SQL_LEN]="";
-                    snprintf(sql, MAX_SQL_LEN, "UPDATE CHARACTER_TABLE SET LAST_IN_GAME=%i WHERE CHAR_ID=%i;",(int)clients.client[i].time_of_last_minute, clients.client[i].character_id);
-                    db_push_buffer(sql, i, IDLE_BUFFER_PROCESS_SQL, NULL);
+                    snprintf(sql, MAX_SQL_LEN, "UPDATE CHARACTER_TABLE SET LAST_IN_GAME=%i WHERE CHAR_ID=%i;",(int)client->time_of_last_minute, client->character_id);
+                    db_push_buffer(sql);
                 }
 
                 //process any char movements
-                process_char_move(i, time_check.tv_usec);
+                process_char_move(*client, time_check.tv_usec);
             }
+            ++iter;
         }
     }
 }
@@ -671,22 +662,22 @@ int main(int argc, char *argv[]){
             }else start_server(DATABASE_FILE_NAME);
         }
         else if(argv[1][1]=='L'){//add or update map
-
+            open_database(DATABASE_FILE_NAME);
             //use uintptr_t to prevent int truncation issues when compiled as 64bit
-            if(get_db_map_exists((uintptr_t)argv[2])==TRUE){
+            if(get_db_map_exists((uintptr_t)atoi(argv[2]))==TRUE){
 
                 //use uintptr_t to prevent int truncation issues when compiled as 64bit
-                add_db_map((uintptr_t)argv[2], (char*)argv[3], (char*)argv[4]);
+                add_db_map(atoi(argv[2]), (char*)argv[3], (char*)argv[4]);
             }
             else {
 
                 //use uintptr_t to prevent int truncation issues when compiled as 64bit
-                add_db_map((uintptr_t)argv[2], (char*)argv[3], (char*)argv[4]);
+                add_db_map(atoi(argv[2]), (char*)argv[3], (char*)argv[4]);
             }
         }
         else if(argv[1][1]=='C'){ // create database
 
-            if(argc>1){
+            if(argc>2){
 
                 open_database(argv[2]);
             }else open_database(DATABASE_FILE_NAME);

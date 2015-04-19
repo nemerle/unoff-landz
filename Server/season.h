@@ -1,26 +1,27 @@
 /******************************************************************************************************************
-	Copyright 2014 UnoffLandz
+    Copyright 2014 UnoffLandz
 
-	This file is part of unoff_server_4.
+    This file is part of unoff_server_4.
 
-	unoff_server_4 is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation, either version 3 of the License, or
-	(at your option) any later version.
+    unoff_server_4 is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
 
-	unoff_server_4 is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
+    unoff_server_4 is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
 
-	You should have received a copy of the GNU General Public License
-	along with unoff_server_4.  If not, see <http://www.gnu.org/licenses/>.
+    You should have received a copy of the GNU General Public License
+    along with unoff_server_4.  If not, see <http://www.gnu.org/licenses/>.
 *******************************************************************************************************************/
 
 #ifndef SEASON_H_INCLUDED
 #define SEASON_H_INCLUDED
 
 #define MAX_SEASONS 4
+struct client_node_type;
 
 struct season_type{
 
@@ -30,7 +31,7 @@ struct season_type{
     int start_day;
     int end_day;
 };
-struct season_type season[MAX_SEASONS];
+extern season_type season[MAX_SEASONS];
 
 
 /** RESULT  : sends the verbose date to the client
@@ -41,6 +42,6 @@ struct season_type season[MAX_SEASONS];
 
     NOTES   :
 **/
-void send_verbose_date(int connection, int game_days);
+void send_verbose_date(client_node_type &client, int game_days);
 
 #endif // SEASON_H_INCLUDED

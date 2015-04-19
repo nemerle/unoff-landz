@@ -24,6 +24,7 @@
 
 #define PATH_MAX 100    // maximum tiles of precalculated character movement
 
+struct client_node_type;
 enum{//return values add_char_to_map
     ADD_MAP_ILLEGAL,
     ADD_MAP_UNREACHABLE,
@@ -44,7 +45,7 @@ enum{//return values remove_char_from_map
 
     PURPOSE : used at log-out to remove a char from map. Also on map jumps
 **/
-int remove_char_from_map(int connection);
+int remove_char_from_map(client_node_type &client);
 
 
 /** RESULT  : adds a character to a map
@@ -55,7 +56,7 @@ int remove_char_from_map(int connection);
 
     PURPOSE : used at log-in to add a char to a map. Also by function move_char_between_maps
 **/
-int add_char_to_map(int connection, int new_map_id, int map_tile);
+int add_char_to_map(client_node_type &new_client, int new_map_id, int map_tile);
 
 
 /** RESULT  : moves a character between maps
@@ -64,7 +65,7 @@ int add_char_to_map(int connection, int new_map_id, int map_tile);
 
     PURPOSE : supports map jumps
 **/
-void move_char_between_maps(int connection, int new_map_id, int new_map_tile);
+void move_char_between_maps(client_node_type &source_client, int new_map_id, int new_map_tile);
 
 
 /** RESULT  : moves a character one step along the path
@@ -73,7 +74,7 @@ void move_char_between_maps(int connection, int new_map_id, int new_map_tile);
 
     PURPOSE : makes the character move
 **/
-void process_char_move(int connection, time_t current_utime);
+void process_char_move(client_node_type &client, time_t current_utime);
 
 
 /** RESULT  : starts the character moving
@@ -83,6 +84,6 @@ void process_char_move(int connection, time_t current_utime);
     PURPOSE : makes the character move
 **/
 //void start_char_move(int connection, int destination, struct ev_loop *loop);
-void start_char_move(int connection, int destination);
+void start_char_move(client_node_type &source_client, int destination);
 
 #endif // CHARACTER_MOVEMENT_H_INCLUDED

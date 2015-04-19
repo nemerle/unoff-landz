@@ -49,6 +49,6 @@ int load_db_seasons();
     NOTES   : to eventually be outsourced to a separate utility
 **/
 
-void add_db_season(int season_id, char *season_name, char *season_description, int start_day, int end_day);
+void add_db_season(int season_id, const char *season_name, const char *season_description, int start_day, int end_day);
 
 #endif // DB_SEASON_TBL_H_INCLUDED

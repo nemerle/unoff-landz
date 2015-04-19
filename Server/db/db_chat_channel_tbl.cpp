@@ -1,20 +1,20 @@
 /******************************************************************************************************************
-	Copyright 2014 UnoffLandz
+    Copyright 2014 UnoffLandz
 
-	This file is part of unoff_server_4.
+    This file is part of unoff_server_4.
 
-	unoff_server_4 is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation, either version 3 of the License, or
-	(at your option) any later version.
+    unoff_server_4 is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
 
-	unoff_server_4 is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
+    unoff_server_4 is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
 
-	You should have received a copy of the GNU General Public License
-	along with unoff_server_4.  If not, see <http://www.gnu.org/licenses/>.
+    You should have received a copy of the GNU General Public License
+    along with unoff_server_4.  If not, see <http://www.gnu.org/licenses/>.
 *******************************************************************************************************************/
 
 #include <string.h> //support for strcpy
@@ -38,7 +38,7 @@ int load_db_channels(){
     char sql[MAX_SQL_LEN]="";
     snprintf(sql, MAX_SQL_LEN, "SELECT * FROM CHANNEL_TABLE");
 
-    rc=sqlite3_prepare_v2(db, sql, -1, &stmt, NULL);
+    rc=sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr);
     if(rc!=SQLITE_OK){
 
         log_sqlite_error("sqlite3_prepare_v2 failed", __func__, __FILE__, __LINE__, rc, sql);
@@ -56,7 +56,7 @@ int load_db_channels(){
             stop_server();
         }
 
-        channel[chan_id].chan_type=sqlite3_column_int(stmt, 1);
+        channel[chan_id].chan_type=(channel_node_type::eChanType)sqlite3_column_int(stmt, 1);
         channel[chan_id].owner_id=sqlite3_column_int(stmt, 2);
         strcpy(channel[chan_id].password, (char*)sqlite3_column_text(stmt, 3));
         strcpy(channel[chan_id].channel_name, (char*)sqlite3_column_text(stmt, 4));
@@ -78,7 +78,7 @@ int load_db_channels(){
 }
 
 
-void add_db_channel(int channel_id, int owner_id, int channel_type, char *password, char *channel_name, char*channel_description, int new_chars){
+void add_db_channel(int channel_id, int owner_id, int channel_type, const char *password, const char *channel_name, const char *channel_description, int new_chars){
 
     /** public function - see header */
 

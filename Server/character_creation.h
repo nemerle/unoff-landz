@@ -20,6 +20,8 @@
 #ifndef CHARACTER_CREATION_H_INCLUDED
 #define CHARACTER_CREATION_H_INCLUDED
 
+struct buffer_node_type;
+struct CreateChar;
 /** RESULT  :   Checks whether a character name exists in the character_table of the database. If the
                 name exists, character creation is aborted and a message sent to the client. If the
                 name does not exist, the character creation packet is placed in the idle buffer with
@@ -32,7 +34,7 @@
     NOTES   :   Enables priority handling of client communications which, might otherwise be
                 delayed by processing of database operations
 **/
-void check_new_character(int connection, unsigned char *packet);
+void check_new_character(const buffer_node_type &cmd, CreateChar *packet);
 
 
 /** RESULT  :   Adds details of a new character to the database during an idle event
@@ -44,7 +46,7 @@ void check_new_character(int connection, unsigned char *packet);
     NOTES   :   Enables priority handling of client communications which, might otherwise be
                 delayed by processing of database operations
 **/
-void add_new_character(int connection, unsigned char *packet);
+void add_new_character(const buffer_node_type &cmd, CreateChar *packet);
 
 
 #endif // CHARACTER_CREATION_H_INCLUDED

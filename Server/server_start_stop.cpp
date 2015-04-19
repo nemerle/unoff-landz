@@ -27,7 +27,7 @@ void stop_server(){
 
     char time_stamp_str[9]="";
     char verbose_date_stamp_str[50]="";
-    time_t stop_time=time(NULL);
+    time_t stop_time=time(nullptr);
 
     get_time_stamp_str(stop_time, time_stamp_str);
     get_verbose_date_str(stop_time, verbose_date_stamp_str);

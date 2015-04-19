@@ -30,7 +30,7 @@ int get_file_size(char *file_name){
     FILE *file;
     int count=0;
 
-    if((file=fopen(file_name, "r"))==NULL) return NOT_FOUND;
+    if((file=fopen(file_name, "r"))==nullptr) return NOT_FOUND;
 
     while(fgetc(file) != EOF) {
         count++;

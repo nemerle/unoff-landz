@@ -2,6 +2,7 @@
 find_package(LibEV REQUIRED)
 find_package(SQLite3 REQUIRED)
 
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(DB_SRC
     db/db_attribute_tbl.cpp
     db/db_character_race_tbl.cpp
@@ -27,31 +28,32 @@ set(DB_SRC
     db/database_functions.h
 )
 set(SRC broadcast_actor_functions.cpp
-character_creation.cpp
-character_inventory.cpp
-character_movement.cpp
-character_race.cpp
-characters.cpp
-chat.cpp
-client_protocol_handler.cpp
-date_time_functions.cpp
-file_functions.cpp
-gender.cpp
-hash_commands.cpp
-idle_buffer.cpp
-initialise_server.cpp
-logging.cpp
-log_in.cpp
-main.cpp
-maps.cpp
-movement.cpp
-numeric_functions.cpp
-pathfinding.cpp
-season.cpp
-server_messaging.cpp
-server_protocol_functions.cpp
-server_start_stop.cpp
-string_functions.cpp
+    character_creation.cpp
+    character_inventory.cpp
+    character_movement.cpp
+    character_race.cpp
+    characters.cpp
+    chat.cpp
+    clients.cpp
+    client_protocol_handler.cpp
+    date_time_functions.cpp
+    file_functions.cpp
+    gender.cpp
+    game_data.cpp
+    hash_commands.cpp
+    idle_buffer.cpp
+    initialise_server.cpp
+    logging.cpp
+    log_in.cpp
+    main.cpp
+    maps.cpp
+    movement.cpp
+    pathfinding.cpp
+    season.cpp
+    server_messaging.cpp
+    server_protocol_functions.cpp
+    server_start_stop.cpp
+    string_functions.cpp
 )
 set(INCLUDES
     attributes.h
@@ -61,9 +63,9 @@ set(INCLUDES
     character_race.h
     character_race_tbl.h
     characters.h
+    character_type.cpp
     character_type.h
     chat.h
-    client_protocol.h
     client_protocol_handler.h
     clients.h
     colour.h
@@ -80,16 +82,14 @@ set(INCLUDES
     log_in.h
     maps.h
     movement.h
-    numeric_functions.h
     pathfinding.h
     season.h
     server_messaging.h
     server_parameters.h
     server_protocol_functions.h
-    server_protocol.h
     server_start_stop.h
     string_functions.h
 )
 include_directories(${LIBEV_INCLUDE_DIR})
 add_executable(unoff ${SRC} ${INCLUDES} ${DB_SRC})
-target_link_libraries(unoff ${LIBEV_LIBRARY} ${SQLITE3_LIBRARIES})
+target_link_libraries(unoff ${LIBEV_LIBRARY} ${SQLITE3_LIBRARIES} unoff_packeteer)

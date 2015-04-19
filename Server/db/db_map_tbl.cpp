@@ -1,20 +1,20 @@
 /******************************************************************************************************************
-	Copyright 2014 UnoffLandz
+    Copyright 2014 UnoffLandz
 
-	This file is part of unoff_server_4.
+    This file is part of unoff_server_4.
 
-	unoff_server_4 is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation, either version 3 of the License, or
-	(at your option) any later version.
+    unoff_server_4 is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
 
-	unoff_server_4 is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
+    unoff_server_4 is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
 
-	You should have received a copy of the GNU General Public License
-	along with unoff_server_4.  If not, see <http://www.gnu.org/licenses/>.
+    You should have received a copy of the GNU General Public License
+    along with unoff_server_4.  If not, see <http://www.gnu.org/licenses/>.
 *******************************************************************************************************************/
 
 #include <stdio.h>  //support for NULL
@@ -37,10 +37,10 @@ int load_db_maps(){
 
     //the union converts an array containing the elm file contents into separate elements
     union {
-        unsigned char byte[MAX_ELM_FILE_SIZE];
+        uint8_t byte[MAX_ELM_FILE_SIZE];
 
         struct{
-            unsigned char magic_number[4];
+            uint8_t magic_number[4];
             int h_tiles;
             int v_tiles;
             int tile_map_offset;
@@ -58,10 +58,10 @@ int load_db_maps(){
             int lights_object_count;
             int lights_object_offset;
 
-            unsigned char dungeon_flag;
-            unsigned char version_flag;
-            unsigned char reserved1;
-            unsigned char reserved2;
+            uint8_t dungeon_flag;
+            uint8_t version_flag;
+            uint8_t reserved1;
+            uint8_t reserved2;
 
             int ambient_red;
             int ambient_green;
@@ -90,7 +90,7 @@ int load_db_maps(){
     char sql[MAX_SQL_LEN]="";
     snprintf(sql, MAX_SQL_LEN, "SELECT * FROM MAP_TABLE");
 
-    rc=sqlite3_prepare_v2(db, sql, -1, &stmt, NULL);
+    rc=sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr);
     if(rc!=SQLITE_OK){
 
         log_sqlite_error("sqlite3_prepare_v2 failed", __func__, __FILE__, __LINE__, rc, sql);
@@ -128,7 +128,7 @@ int load_db_maps(){
         }
 
         //read elm file data into union
-        memcpy(elm_file.byte, (unsigned char*)sqlite3_column_blob(stmt, 3), elm_file_size);
+        memcpy(elm_file.byte, (uint8_t*)sqlite3_column_blob(stmt, 3), elm_file_size);
 
         //check Magic Number
         log_text(EVENT_MAP_LOAD, "Magic Number [%c%c%c%c]", elm_file.elm_header.magic_number[0], elm_file.elm_header.magic_number[1], elm_file.elm_header.magic_number[2], elm_file.elm_header.magic_number[3]);
@@ -350,9 +350,8 @@ int get_db_map_exists(int map_id){
     char sql[MAX_SQL_LEN]="";
     snprintf(sql, MAX_SQL_LEN, "SELECT count(*) FROM MAP_TABLE WHERE MAP_ID=?");
 
-    rc = sqlite3_prepare_v2(db, sql, -1, &stmt, NULL);
+    rc = sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr);
     if(rc!=SQLITE_OK){
-
         log_sqlite_error("sqlite3_prepare_v2 failed", __func__, __FILE__, __LINE__, rc, sql);
     }
     rc = sqlite3_bind_int(stmt, 1, map_id);
@@ -362,6 +361,7 @@ int get_db_map_exists(int map_id){
 
     while((rc = sqlite3_step(stmt))==SQLITE_ROW)
         ;
+
     if (rc != SQLITE_DONE) {
 
         log_sqlite_error("sqlite3_step failed", __func__, __FILE__, __LINE__, rc, sql);
@@ -406,7 +406,7 @@ void add_db_map(int map_id, char *map_name, char *elm_file_name){
     "ELM_FILE" \
     ") VALUES( ?, ?, ?, ?)");
 
-    rc=sqlite3_prepare_v2(db, sql, -1, &stmt, NULL);
+    rc=sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr);
     if(rc!=SQLITE_OK){
 
         log_sqlite_error("sqlite3_prepare_v2 failed", __func__, __FILE__, __LINE__, rc, sql);
@@ -420,7 +420,7 @@ void add_db_map(int map_id, char *map_name, char *elm_file_name){
     //find the size of the elm file
     int file_size=get_file_size(elm_file_name);
 
-    if((file=fopen(elm_file_name, "r"))==NULL) {
+    if((file=fopen(elm_file_name, "r"))==nullptr) {
 
         log_event(EVENT_ERROR, "unable to open file [%s] in %s: module %s: line %i", elm_file_name, __func__, __FILE__, __LINE__);
         stop_server();
@@ -437,7 +437,7 @@ void add_db_map(int map_id, char *map_name, char *elm_file_name){
     //read the elm file into a string
     unsigned byte[MAX_ELM_FILE_SIZE];
 
-    if((file=fopen(elm_file_name, "r"))==NULL) {
+    if((file=fopen(elm_file_name, "r"))==nullptr) {
 
         log_event(EVENT_ERROR, "unable to open file [%s] in function %s: module %s: line %i", elm_file_name, __func__, __FILE__, __LINE__);
         stop_server();
@@ -449,7 +449,7 @@ void add_db_map(int map_id, char *map_name, char *elm_file_name){
         stop_server();
     }
 
-    sqlite3_bind_blob(stmt, 4, byte, file_size, NULL);
+    sqlite3_bind_blob(stmt, 4, byte, file_size, nullptr);
 
     rc = sqlite3_step(stmt);
 
@@ -487,7 +487,7 @@ void update_db_map(int map_id, char *map_name, char *elm_file_name){
     "SET ELM_FILE=? " \
     "WHERE MAP_ID=?");
 
-    rc=sqlite3_prepare_v2(db, sql, -1, &stmt, NULL);
+    rc=sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr);
     if(rc!=SQLITE_OK){
 
         log_sqlite_error("sqlite3_prepare_v2 failed", __func__, __FILE__, __LINE__, rc, sql);
@@ -501,7 +501,7 @@ void update_db_map(int map_id, char *map_name, char *elm_file_name){
     //find the size of the elm file
     int file_size=get_file_size(elm_file_name);
 
-    if((file=fopen(elm_file_name, "r"))==NULL) {
+    if((file=fopen(elm_file_name, "r"))==nullptr) {
 
         log_event(EVENT_ERROR, "unable to open file [%s] in %s: module %s: line %i", elm_file_name, __func__, __FILE__, __LINE__);
         stop_server();
@@ -518,7 +518,7 @@ void update_db_map(int map_id, char *map_name, char *elm_file_name){
     //read the elm file into a string
     unsigned byte[MAX_ELM_FILE_SIZE];
 
-    if((file=fopen(elm_file_name, "r"))==NULL) {
+    if((file=fopen(elm_file_name, "r"))==nullptr) {
 
         log_event(EVENT_ERROR, "unable to open file [%s] in function %s: module %s: line %i", elm_file_name, __func__, __FILE__, __LINE__);
         stop_server();
@@ -530,7 +530,7 @@ void update_db_map(int map_id, char *map_name, char *elm_file_name){
         stop_server();
     }
 
-    sqlite3_bind_blob(stmt, 3, byte, file_size, NULL);
+    sqlite3_bind_blob(stmt, 3, byte, file_size, nullptr);
 
     rc = sqlite3_step(stmt);
     if (rc!= SQLITE_DONE) {

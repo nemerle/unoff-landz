@@ -34,6 +34,7 @@
 #include "server_protocol_functions.h"
 #include "characters.h"
 
+client_node_type character;
 Attribute attribute[MAX_RACES];
 /**
     \brief the visual range of character, depending on ingame timeof day
@@ -41,30 +42,31 @@ Attribute attribute[MAX_RACES];
     \returns visual range in [unit]
     TODO: fill in the distance units
 */
-int get_char_visual_range(int connection){
+int client_node_type::get_char_visual_range() const{
 
     /** public function - see header */
 
-    int race_id=get_char_race_id(connection);
+    int _race_id=race_id();
     int visual_proximity=0;
 
     if(game_data.game_minutes<180){
 
-        visual_proximity = attribute[race_id].day_vision[clients.client[connection].vitality_pp];
+        visual_proximity = attribute[_race_id].day_vision[attribute_data.vitality.current];
     }
     else {
 
-        visual_proximity = attribute[race_id].night_vision[clients.client[connection].instinct_pp];
+        visual_proximity = attribute[_race_id].night_vision[attribute_data.instinct.current];
     }
 
     //prevents problems that arise where visual range attributes are zero
-    if(visual_proximity<3) visual_proximity=3;
+    if(visual_proximity<3)
+        visual_proximity=3;
 
     return visual_proximity;
 }
 
 
-int char_in_game(char *char_name){
+client_node_type * char_in_game(const char *char_name){
 
     /** public function - see header */
 
@@ -75,32 +77,35 @@ int char_in_game(char *char_name){
 
     char compare_name[80]="";
 
-    int i=0;
-    for(i=0; i<MAX_CLIENTS; i++){
-
-        if(clients.client[i].client_status==client_node_type::LOGGED_IN){
+    for(std::pair<const uint16_t,client_node_type *> &v : clients) {
+        client_node_type *client  = v.second;
+        if(client->client_status==client_node_type::LOGGED_IN){
 
             //convert compare name to upper case
-            strcpy(compare_name, clients.client[i].char_name);
+            strcpy(compare_name, client->char_name.c_str());
             str_conv_upper(compare_name);
 
             //compare the target name and compare name
             if(strcmp(target_name, compare_name)==0) {
 
-                return i;
+                return client;
             }
         }
     }
 
-    return NOT_FOUND;
+    return nullptr;
 }
 
 
-int char_age(int connection){
+/**
+ * \brief determines how long a char has been in game since creation
+ * \returns time in seconds
+ */
+int client_node_type::char_age() const {
 
     /** public function - see header */
 
-    int age=(clients.client[connection].time_of_last_minute - clients.client[connection].char_created) / (60*60*24);
+    int age=(time_of_last_minute - char_created) / (60*60*24);
 
     return age;
 }
