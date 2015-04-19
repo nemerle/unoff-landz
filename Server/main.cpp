@@ -1,20 +1,20 @@
 /******************************************************************************************************************
-	Copyright 2014 UnoffLandz
+    Copyright 2014 UnoffLandz
 
-	This file is part of unoff_server_4.
+    This file is part of unoff_server_4.
 
-	unoff_server_4 is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation, either version 3 of the License, or
-	(at your option) any later version.
+    unoff_server_4 is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
 
-	unoff_server_4 is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
+    unoff_server_4 is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
 
-	You should have received a copy of the GNU General Public License
-	along with unoff_server_4.  If not, see <http://www.gnu.org/licenses/>.
+    You should have received a copy of the GNU General Public License
+    along with unoff_server_4.  If not, see <http://www.gnu.org/licenses/>.
 *******************************************************************************************************************/
 /******************************************************************************************************************
 
@@ -340,7 +340,7 @@ void socket_accept_callback(struct ev_loop *loop, struct ev_io *watcher, int rev
     libevlist[client_sd] = client_watcher;
 
     //set up connection data entry in client struct
-    clients.client[client_sd].client_status=CONNECTED;
+    clients.client[client_sd].client_status=client_node_type::CONNECTED;
     strcpy(clients.client[client_sd].ip_address, inet_ntoa(client_addr.sin_addr));
 
     //set up heartbeat
@@ -485,7 +485,7 @@ void close_connection_slot(int connection){
         NOTES    :
     **/
 
-    if(clients.client[connection].client_status==LOGGED_IN){
+    if(clients.client[connection].client_status==client_node_type::LOGGED_IN){
 
         //broadcast to local
         broadcast_remove_actor_packet(connection);
@@ -568,7 +568,8 @@ void timeout_cb(EV_P_ struct ev_timer* timer, int revents){
     for(i=0; i<MAX_CLIENTS; i++){
 
         //restrict to clients that are logged on or connected
-        if(clients.client[i].client_status==LOGGED_IN || clients.client[i].client_status==CONNECTED) {
+        if(clients.client[i].client_status==client_node_type::LOGGED_IN ||
+                clients.client[i].client_status==client_node_type::CONNECTED) {
 
             //check for lagged connection
             if(clients.client[i].time_of_last_heartbeat+HEARTBEAT_INTERVAL<time_check.tv_sec){
@@ -589,7 +590,7 @@ void timeout_cb(EV_P_ struct ev_timer* timer, int revents){
             }
 
             //restrict to clients that are logged on
-            if(clients.client[i].client_status==LOGGED_IN) {
+            if(clients.client[i].client_status==client_node_type::LOGGED_IN) {
 
                 //update client game time
                 if(clients.client[i].time_of_last_minute+GAME_MINUTE_INTERVAL<time_check.tv_sec){
@@ -646,7 +647,7 @@ int main(int argc, char *argv[]){
         NOTES    :
     **/
 
-  	printf("UnoffLandz Server - version %s\n\n", VERSION);
+    printf("UnoffLandz Server - version %s\n\n", VERSION);
 
     if(argc==1){
 
@@ -657,10 +658,10 @@ int main(int argc, char *argv[]){
         printf("-B [map id] [map tile]                ...character start location\n");
         printf("-E [map_id] [map tile]                ...beam me target\n");
 
-		exit(EXIT_FAILURE);
+        exit(EXIT_FAILURE);
     }
 
-	if (argv[1][0] == '-') {
+    if (argv[1][0] == '-') {
 
         if(argv[1][1]=='S'){//start server
 
@@ -696,8 +697,8 @@ int main(int argc, char *argv[]){
 
             printf("unknown command line option [%s]\n", (char*)argv[1]);
         }
-	}
+    }
 
-	return 0; //otherwise we get 'control reaches end of non-void function
+    return 0; //otherwise we get 'control reaches end of non-void function
 }
 

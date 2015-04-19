@@ -1,20 +1,20 @@
 /******************************************************************************************************************
-	Copyright 2014 UnoffLandz
+    Copyright 2014 UnoffLandz
 
-	This file is part of unoff_server_4.
+    This file is part of unoff_server_4.
 
-	unoff_server_4 is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation, either version 3 of the License, or
-	(at your option) any later version.
+    unoff_server_4 is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
 
-	unoff_server_4 is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
+    unoff_server_4 is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
 
-	You should have received a copy of the GNU General Public License
-	along with unoff_server_4.  If not, see <http://www.gnu.org/licenses/>.
+    You should have received a copy of the GNU General Public License
+    along with unoff_server_4.  If not, see <http://www.gnu.org/licenses/>.
 *******************************************************************************************************************/
 
 #include <stdio.h> //support for printf
@@ -52,7 +52,7 @@ void broadcast_add_new_enhanced_actor_packet(int connection){
     for(i=0; i<MAX_CLIENTS; i++){
 
         //restrict to clients that are logged in
-        if(clients.client[i].client_status==LOGGED_IN){
+        if(clients.client[i].client_status==client_node_type::LOGGED_IN){
 
             //exclude the broadcasting char
             if(i!=connection){
@@ -96,7 +96,7 @@ void broadcast_remove_actor_packet(int connection) {
     for(i=0; i<MAX_CLIENTS; i++){
 
         //restrict to clients that are logged in
-        if(clients.client[i].client_status==LOGGED_IN){
+        if(clients.client[i].client_status==client_node_type::LOGGED_IN){
 
             //exclude the broadcasting char
             if(i!=connection){
@@ -161,7 +161,7 @@ void broadcast_actor_packet(int connection, unsigned char move, int sender_desti
     // broadcast sender char move to all receiver clients
     for(i=0; i<MAX_CLIENTS; i++){
 
-        if(clients.client[i].client_status==LOGGED_IN){
+        if(clients.client[i].client_status==client_node_type::LOGGED_IN){
 
             if(clients.client[i].map_id==clients.client[connection].map_id){
 
@@ -276,7 +276,7 @@ void broadcast_local_chat(int connection, char *text_in){
 
     for(i=0; i<MAX_CLIENTS; i++){
 
-        if(clients.client[i].client_status==LOGGED_IN){
+        if(clients.client[i].client_status==client_node_type::LOGGED_IN){
 
             if(map_id==clients.client[i].map_id) {
 
@@ -300,7 +300,7 @@ void broadcast_channel_chat(int chan, int connection, char *text_in){
 
     for(i=0; i<MAX_CLIENTS; i++){
 
-        if(clients.client[i].client_status==LOGGED_IN){
+        if(clients.client[i].client_status==client_node_type::LOGGED_IN){
 
             //don't echo to self
             if(connection!=i){
@@ -336,7 +336,7 @@ void broadcast_channel_event(int chan, int connection, char *text_in){
 
     for(i=0; i<MAX_CLIENTS; i++){
 
-        if(clients.client[i].client_status==LOGGED_IN){
+        if(clients.client[i].client_status==client_node_type::LOGGED_IN){
 
             //don't echo to self
             if(connection!=i){

@@ -1,20 +1,20 @@
 /******************************************************************************************************************
-	Copyright 2014 UnoffLandz
+    Copyright 2014 UnoffLandz
 
-	This file is part of unoff_server_4.
+    This file is part of unoff_server_4.
 
-	unoff_server_4 is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation, either version 3 of the License, or
-	(at your option) any later version.
+    unoff_server_4 is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
 
-	unoff_server_4 is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
+    unoff_server_4 is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
 
-	You should have received a copy of the GNU General Public License
-	along with unoff_server_4.  If not, see <http://www.gnu.org/licenses/>.
+    You should have received a copy of the GNU General Public License
+    along with unoff_server_4.  If not, see <http://www.gnu.org/licenses/>.
 *******************************************************************************************************************/
 
 #include "stdio.h" //supports sprintf
@@ -65,7 +65,7 @@ void list_characters_in_chan(int connection, int chan){
 
     for(i=0; i<MAX_CLIENTS; i++){
 
-        if(clients.client[i].client_status==LOGGED_IN){
+        if(clients.client[i].client_status==client_node_type::LOGGED_IN){
 
             if(is_player_in_chan(i, chan)!=NOT_FOUND){
 
@@ -93,7 +93,7 @@ int join_channel(int connection, int chan){
     }
 
     //stop players from joining system channels
-    else if(channel[chan].chan_type==CHAN_SYSTEM){
+    else if(channel[chan].chan_type==channel_node_type::CHAN_SYSTEM){
 
         sprintf(text_out, "%cchannel is reserved for system use", c_red3+127);
         send_raw_text(connection, CHAT_SERVER, text_out);
@@ -102,7 +102,7 @@ int join_channel(int connection, int chan){
     }
 
     //stop players from joining vacant channels
-    else if(channel[chan].chan_type==CHAN_VACANT){
+    else if(channel[chan].chan_type==channel_node_type::CHAN_VACANT){
 
         sprintf(text_out, "%cThat channel is not open", c_red3+127);
         send_raw_text(connection, CHAT_SERVER, text_out);
@@ -111,7 +111,7 @@ int join_channel(int connection, int chan){
     }
 
     //stop players from joining guild channels
-    else if(channel[chan].chan_type==CHAN_GUILD){
+    else if(channel[chan].chan_type==channel_node_type::CHAN_GUILD){
 
         sprintf(text_out, "%cThat channel is for a guild", c_red3+127);
         send_raw_text(connection, CHAT_SERVER, text_out);

@@ -3,15 +3,15 @@ find_package(LibEV REQUIRED)
 find_package(SQLite3 REQUIRED)
 
 set(DB_SRC
-    db/db_attribute_tbl.c
-    db/db_character_race_tbl.c
-    db/db_character_tbl.c
-    db/db_character_type_tbl.c
-    db/db_chat_channel_tbl.c
-    db/db_game_data_tbl.c
-    db/db_gender_tbl.c
-    db/db_map_tbl.c
-    db/db_season_tbl.c
+    db/db_attribute_tbl.cpp
+    db/db_character_race_tbl.cpp
+    db/db_character_tbl.cpp
+    db/db_character_type_tbl.cpp
+    db/db_chat_channel_tbl.cpp
+    db/db_game_data_tbl.cpp
+    db/db_gender_tbl.cpp
+    db/db_map_tbl.cpp
+    db/db_season_tbl.cpp
     db/db_attribute_tbl.h
     db/db_character_inventory_tbl.h
     db/db_character_race_tbl.h
@@ -23,35 +23,35 @@ set(DB_SRC
     db/db_map_tbl.h
     db/db_season_tbl.h
 
-    db/database_functions.c
+    db/database_functions.cpp
     db/database_functions.h
 )
-set(SRC broadcast_actor_functions.c
-character_creation.c
-character_inventory.c
-character_movement.c
-character_race.c
-characters.c
-chat.c
-client_protocol_handler.c
-date_time_functions.c
-file_functions.c
-gender.c
-hash_commands.c
-idle_buffer.c
-initialise_server.c
-logging.c
-log_in.c
-main.c
-maps.c
-movement.c
-numeric_functions.c
-pathfinding.c
-season.c
-server_messaging.c
-server_protocol_functions.c
-server_start_stop.c
-string_functions.c
+set(SRC broadcast_actor_functions.cpp
+character_creation.cpp
+character_inventory.cpp
+character_movement.cpp
+character_race.cpp
+characters.cpp
+chat.cpp
+client_protocol_handler.cpp
+date_time_functions.cpp
+file_functions.cpp
+gender.cpp
+hash_commands.cpp
+idle_buffer.cpp
+initialise_server.cpp
+logging.cpp
+log_in.cpp
+main.cpp
+maps.cpp
+movement.cpp
+numeric_functions.cpp
+pathfinding.cpp
+season.cpp
+server_messaging.cpp
+server_protocol_functions.cpp
+server_start_stop.cpp
+string_functions.cpp
 )
 set(INCLUDES
     attributes.h
